@@ -1,4 +1,4 @@
-# Exercise 1: Recreate a GLD Harmonization
+# Block 2: Reproduce a GLD Harmonization
 
 **Pakistan Labour Force Survey 2024-25 | About 20 minutes | Stata users**
 
