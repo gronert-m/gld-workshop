@@ -1,4 +1,4 @@
-# Block 3 --- Extending the GLD
+# Block 3: Extending the GLD
 
 ## 1. Introduction
 
