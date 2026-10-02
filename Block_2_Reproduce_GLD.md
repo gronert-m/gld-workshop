@@ -175,4 +175,4 @@ These checks cover the number of non-missing survey weights, the means of `weigh
 
 We have recovered a reproducible chain: **provider data + GLD code + auxiliary files + software dependencies -> harmonized output**. Open code makes this chain inspectable; access to microdata still follows the provider's terms. See the [GLD introduction](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/Introduction%20to%20the%20GLD.html) for the broader principles.
 
-In [the next exercise](Block_3_Extending_the_GLD.md), we retain the standard harmonization and create a separate research version. Keep your corrected do-file and a record of the inputs: the next step is to extend this chain, not start from scratch.
+In [the next exercise](Block_3_Expanding_the_GLD.md), we retain the standard harmonization and create a separate research version. Keep your corrected do-file and a record of the inputs: the next step is to extend this chain, not start from scratch.
