@@ -1,8 +1,10 @@
 # AI Exposure and Complementarity Scores
 
-This folder provides documentation and occupational mappings for linking artificial intelligence (AI) exposure and potential complementarity scores to Global Labor Database (GLD) data. These materials support the hands-on GLD workshop at the Jobs and Development Conference in Hong Kong on October 8, 2026.
+The AI exposure and complementarity mappings provided here were shared with the Global Labor Database (GLD) team by the authors of Pizzinelli et al. (2023), who agreed to their public inclusion in this workshop repository alongside the AI Occupational Exposure classification developed by Felten et al. (2021). These materials support hands-on exercises linking the scores to GLD data.
 
-The scores draw on the AI Occupational Exposure measure developed by **Felten, Raj, and Seamans (2021)** and the complementarity framework developed by **Pizzinelli, Panton, Tavares, Cazzaniga, and Li (2023)**. Please cite both papers when using these materials.
+Full citations are provided at the end of this README. Please cite both papers when using these materials alongside the disclaimer below (which applies to this workshop as well):
+
+> The authors of the paper are solely responsible for this data. This data should not be interpreted as the official view of the International Monetary Fund, its Management, or its Board.
 
 ## Sources and interpretation
 
