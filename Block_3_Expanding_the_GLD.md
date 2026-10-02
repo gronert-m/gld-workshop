@@ -57,7 +57,7 @@ The GLD harmonization template separates the work into stages. For a research-sp
 2.  **Section 8A --- user-defined extensions:** create the additional variables after creating the standard ones.
 3.  **Section 9 --- final steps:** add the new variables to the final `keep` list.
 
-The GLD template defines the standard output in Section 1.2 as an `_ALL.dta` file. For our research version, we create a separate `_Extended.dta` output. For example:
+The GLD template defines the standard output in Section 1.2 as an `_ALL.dta` file. For our research version, we create a separate `_EXPANDED.dta` output. For example:
 
 ``` stata
 *----------1.2: Set directories------------------------------*
@@ -67,7 +67,7 @@ local gen_path "C:/Users/wb529026/WBG/WKPEJ Files - GLD Expansion - P509260/Diss
 local path_in_stata "`gen_path'/1 - Recreate"
 
 local path_output "`gen_path'/2 - Expand"
-local out_file "PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED"
+local out_file "PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta"
 ```
 
 After the standard harmonization has created its variables (last block to create variables is section 8), we insert a section 8A:
