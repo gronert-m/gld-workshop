@@ -140,12 +140,8 @@ We first identify own-use agricultural producers who are not employed under the 
 
 ``` stata
 * ------------------------------------------------------------------
-* ICLS 13th BRIDGE CODE — PAK LFS 2024
+* 1. Identify respondents employed under ICLS-13 but not ICLS-19
 * ------------------------------------------------------------------
-
-    * ------------------------------------------------------------------
-    * 1. Identify respondents employed under ICLS-13 but not ICLS-19
-    * ------------------------------------------------------------------
 
 gen byte extra_icls_13_emp = 0
 * own-use farming/livestock/fishing through S5C10
@@ -158,9 +154,9 @@ The `inlist(lstatus, 2, 3)` condition is deliberate. These respondents are alrea
 Once we treat this group as employed, we also need employment characteristics for them. Under the standard ICLS-19 construction these variables are missing because they are defined only for employed respondents. We therefore create the parallel variables in the same step: self-employment, private/NGO sector, agriculture, and skilled agricultural occupation are assigned characteristics, not observed answers to the skipped employment questions. The approach shown below mirrors the one used by the ILO's ILOSTAT team when differentiating between ICLS-13 and ICLS-19 versions.
 
 ``` stata
-    * ------------------------------------------------------------------
-    * 2. Construct parallel ICLS-13 variables
-    * ------------------------------------------------------------------
+* ------------------------------------------------------------------
+* 2. Construct parallel ICLS-13 variables
+* ------------------------------------------------------------------
 
 * Labour-force status
 gen byte lstatus_13 = lstatus
