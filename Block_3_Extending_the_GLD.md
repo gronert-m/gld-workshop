@@ -32,8 +32,7 @@ We already have:
 
 -   the original Pakistan LFS data;
 -   the questionnaire and supporting documentation;
--   the GLD harmonization do-file; and
--   the harmonized GLD dataset produced by that do-file.
+-   the GLD harmonization do-file.
 
 We do **not** need to reconstruct the entire harmonization.
 
@@ -49,25 +48,6 @@ The existing program has already done substantial work for us. For example, it h
 -   survey weights.
 
 Our task is to identify what additional information our research requires.
-
-### Run the accompanying do-files
-
-There are two runnable files:
-
-- [Build the extended dataset](PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do): a copy of the harmonization from Block 2 with Section 8A added. It reads the inputs in `1 - Recreate` and saves `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta` in `2 - Expand`.
-- [Run the analysis](PAK_2024_LFS_V01_M_V01_A_GLD_ANALYSIS.do): reads the expanded dataset and runs the commuting tables, models, margins, and plots. It writes a separate text log, replacing that log on subsequent runs.
-
-Set Stata's working directory to the workshop's `Examples` folder, then run these commands in order:
-
-``` stata
-cd "C:/your/path/Examples"
-do "2 - Expand/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do"
-do "2 - Expand/PAK_2024_LFS_V01_M_V01_A_GLD_ANALYSIS.do"
-```
-
-Run each file in full so its local macros remain in scope. The software dependencies are the same as in [Block 2](../1%20-%20Recreate/Block_2_Reproduce_GLD.md), including internet access for classification validation.
-
-------------------------------------------------------------------------
 
 ## 3. Where should extensions go?
 
