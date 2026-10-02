@@ -328,27 +328,18 @@ tab work_mobility commute_time, row chi2
 
 The row percentages show a striking pattern.
 
-  -------------------------------------------------------------------------------
-  Residence-to-work         \<30 min     31--45 min     46--60 min        61+ min
-  pattern                                                          
-  ------------------- -------------- -------------- -------------- --------------
-  Rural -\> Rural             80.45%         14.50%          2.82%          2.23%
-
-  Rural -\> Urban             40.22%         30.88%         12.28%         16.62%
-
-  Urban -\> Rural             64.99%         22.17%          6.83%          6.01%
-
-  Urban -\> Urban             64.38%         24.75%          7.32%          3.55%
-  -------------------------------------------------------------------------------
+| Residence-to-work pattern | <30 min | 31–45 min | 46–60 min | 61+ min |
+|---|---:|---:|---:|---:|
+| Rural → Rural | 80.45% | 14.50% | 2.82% | 2.23% |
+| Rural → Urban | 40.22% | 30.88% | 12.28% | 16.62% |
+| Urban → Rural | 64.99% | 22.17% | 6.83% | 6.01% |
+| Urban → Urban | 64.38% | 24.75% | 7.32% | 3.55% |
 
 Rural-to-rural workers have the shortest observed commuting times.
 
-Rural-to-urban workers stand out in the opposite direction. Only around
-40 percent report commuting less than 30 minutes, while approximately 29
-percent report commuting more than 45 minutes.
+Rural-to-urban workers stand out in the opposite direction. Only around 40 percent report commuting less than 30 minutes, while approximately 29 percent report commuting more than 45 minutes.
 
-The Pearson chi-square test rejects independence between the two
-variables (`p < .001`).
+The Pearson chi-square test rejects independence between the two variables (`p < .001`).
 
 We can also compare residence-to-work patterns using the `long_commute` indicator created in Section 4.2:
 
@@ -358,45 +349,39 @@ tab work_mobility long_commute, row chi2
 
 We obtain:
 
-  Residence-to-work pattern     ≤45 minutes   \>45 minutes
-  --------------------------- ------------- --------------
-  Rural -\> Rural                    94.95%          5.05%
-  Rural -\> Urban                    71.09%         28.91%
-  Urban -\> Rural                    87.16%         12.84%
-  Urban -\> Urban                    89.13%         10.87%
-  **Total**                      **89.64%**     **10.36%**
+| Residence-to-work pattern | ≤45 minutes | >45 minutes |
+|---|---:|---:|
+| Rural → Rural | 94.95% | 5.05% |
+| Rural → Urban | 71.09% | 28.91% |
+| Urban → Rural | 87.16% | 12.84% |
+| Urban → Urban | 89.13% | 10.87% |
+| **Total** | **89.64%** | **10.36%** |
 
-The contrast is now particularly easy to see.
-
-Around **5 percent** of rural-to-rural workers have commutes exceeding
-45 minutes, compared with almost **29 percent** of rural-to-urban
+The contrast is now particularly easy to see. Around **5 percent** of rural-to-rural workers have commutes exceeding 45 minutes, compared with almost **29 percent** of rural-to-urban
 workers.
 
-This is information that we could not have obtained from the standard
-GLD variables alone.
+This is information that we could not have obtained from the standard GLD variables alone.
 
 ### 6.2. Estimate a simple model
 
 We can formalize the comparison using logistic regression.
 
-Because `work_mobility` is categorical, we use Stata's factor-variable
-notation:
+Because `work_mobility` is categorical, we use Stata's factor-variable notation:
 
 ``` stata
 logistic long_commute ib1.work_mobility
 ```
 
-The `i.` tells Stata to treat the variable as categorical, while `b1`
-selects category 1---`Rural -> Rural`---as the reference category.
+The `i.` tells Stata to treat the variable as categorical, while `b1` selects category 1---`Rural -> Rural`---as the reference category.
 
 The estimated odds ratios are approximately:
 
-  Residence-to-work pattern     Odds ratio
-  --------------------------- ------------
-  Rural -\> Rural                Reference
-  Rural -\> Urban                     7.64
-  Urban -\> Rural                     2.77
-  Urban -\> Urban                     2.29
+| Residence-to-work pattern | Odds ratio |
+|---|---:|
+| Rural → Rural | Reference |
+| Rural → Urban | 7.64 |
+| Urban → Rural | 2.77 |
+| Urban → Urban | 2.29 |
 
 For rural-to-urban workers, the odds ratio of 7.64 means that the
 **odds** of a commute exceeding 45 minutes are estimated to be 7.64
@@ -432,21 +417,7 @@ and:
 0.407 / 0.053 ≈ 7.64
 ```
 
-So the model's 7.64 odds ratio corresponds here to an observed
-long-commute share rising from about **5% to 29%**. In probability
-terms, that is about **24 percentage points higher**, or roughly **5.7
-times the probability**. The latter is a descriptive probability ratio,
-not the logistic-regression odds ratio.
-
-For communication, predicted probabilities are often easier to interpret
-than odds ratios. In this simple model we can obtain them directly:
-
-``` stata
-margins work_mobility
-```
-
-This returns the estimated probability of a commute over 45 minutes for
-each residence-to-work category.
+So the model's 7.64 odds ratio corresponds here to an observed long-commute share rising from about **5% to 29%**. In probability terms, that is about **24 percentage points higher**, or roughly **5.7 times the probability**. The latter is a descriptive probability ratio, not the logistic-regression odds ratio.
 
 ### 6.3. Add occupation
 
@@ -458,44 +429,26 @@ work_location        Our extension
 commute_time         Our extension
 ```
 
-We can now bring another standard harmonized variable back into the
-analysis.
-
-The GLD harmonization already provides `occup`, a one-digit occupational
-classification.
-
-This is where the benefit of extending an existing harmonization becomes
-especially clear.
-
-We do not need to go back to the original occupational codes, understand
-the classification, convert them to ISCO, and construct broad
-occupational groups.
-
-That work has already been done.
-
-We can simply estimate:
+We can now bring another standard harmonized variable back into the analysis. The GLD harmonization already provides `occup`, a one-digit occupational
+classification. This is where the benefit of extending an existing harmonization becomes especially clear. We do not need to go back to the original occupational codes, understand
+the classification, convert them to ISCO, and construct broad occupational groups. That work has already been done. We can simply estimate:
 
 ``` stata
 logistic long_commute ib1.work_mobility i.occup
 ```
 
-This asks whether differences across residence-to-work patterns remain
-after accounting for differences in occupational composition.
+This asks whether differences across residence-to-work patterns remain after accounting for differences in occupational composition.
 
 The residence-to-work estimates become:
 
-  Residence-to-work pattern     Unadjusted OR   Occupation-adjusted OR
-  --------------------------- --------------- ------------------------
-  Rural -\> Rural                   Reference                Reference
-  Rural -\> Urban                        7.64                     4.64
-  Urban -\> Rural                        2.77                     2.35
-  Urban -\> Urban                        2.29                     1.39
+| Residence-to-work pattern | Unadjusted OR | Occupation-adjusted OR |
+|---|---:|---:|
+| Rural → Rural | Reference | Reference |
+| Rural → Urban | 7.64 | 4.64 |
+| Urban → Rural | 2.77 | 2.35 |
+| Urban → Urban | 2.29 | 1.39 |
 
-The association becomes smaller after occupation is introduced. The
-change is particularly substantial for rural-to-urban and urban-to-urban
-workers.
-
-For the supplied data, the unadjusted model uses 99,785 observations and the occupation-adjusted model uses 99,783. The script reports both counts. The comparison therefore includes a small change in sample; moreover, odds ratios are non-collapsible, so their change cannot be read as a causal proportion explained by occupation.
+The association becomes smaller after occupation is introduced. The change is particularly substantial for rural-to-urban and urban-to-urban workers.
 
 ## 7. Conclusion
 
