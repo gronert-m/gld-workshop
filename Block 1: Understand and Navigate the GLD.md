@@ -1,7 +1,5 @@
 # Block 1: Understand and Navigate the GLD
 
-Global Labor Database | About 45 minutes
-
 The Global Labor Database (GLD) harmonizes labor force surveys and other household surveys with substantial labor-market information into a common data dictionary. But the GLD is not intended to be only a collection of harmonized datasets.
 
 The harmonization code, documentation, and information learned while working with each survey are part of the project as well. The objective is to make the harmonization **open, transparent, traceable, and reusable**: users should be able to understand how a variable was constructed, reproduce the harmonization, and depart from it when their research requires something different.
@@ -62,14 +60,16 @@ Blocks 2 and 3 of this workshop will do exactly those two things: first reproduc
 
 GLD is continuously expanding, so a static list in this workshop would quickly become outdated.
 
-The **GLD Platform** provides the current survey coverage and allows users to see which GLD variables are available in each survey. The platform is currently in beta.
+The [**GLD Platform**](https://datanalytics.worldbank.org/gld-platform/) provides the current survey coverage and allows users to see which GLD variables are available in each survey. The platform is currently in beta.
 
-Use the platform when you need to answer questions such as:
+The platform intends to answer questions such as:
 
 * Is country X available?
-* Which survey years have been harmonized?
+* Which surveys and years have been harmonized?
 * Is `occup_isco` available in the surveys I want to use?
 * Which countries contain a particular variable?
+
+The platform includes surveys brought in from other harmonizations of the World Bank. These are not present in the GLD Repository. An alternative is to ask AI to read the repository and answer the questions - AI works best with well documented infrastructure.
 
 We will instead spend our workshop time understanding what those variables mean and how to trace their construction.
 
@@ -79,7 +79,7 @@ Before looking at the files, it is useful to understand the principles behind th
 
 ### 2.1 Harmonization does not mean pretending surveys are identical
 
-The scope of the standard GLD harmonization is the **GLD data dictionary**.
+The scope of the standard GLD harmonization is the [**GLD data dictionary**](https://github.com/worldbank/gld/blob/main/Support/A%20-%20Guides%20and%20Documentation/GLD_Dictionary_v01.xlsx).
 
 For every survey, we ask whether and how the information collected by that survey can support the concepts in the dictionary.
 
@@ -136,7 +136,7 @@ You should instead leave this workshop knowing **where to look when you need to 
 
 ### 3.1 Start with the GLD Manual
 
-The public GLD documentation is organized as a website.
+The public [GLD documentation is organized as a website](https://worldbank.github.io/gld/README.html).
 
 Three parts are particularly useful:
 
@@ -186,7 +186,7 @@ You may also see **D - Q Checks**, which contains GLD quality-checking code. We 
 
 ### 3.3 Anatomy of a harmonization program
 
-GLD harmonization programs follow a standard structure.
+GLD harmonization programs follow a standard structure (the [harmonization program template](https://github.com/worldbank/gld/blob/main/Support/C%20-%20Templates/GLD_Harmonization_Template.do) is also available online).
 
 The program begins with a **preamble**, containing information about the survey and relevant standards.
 
@@ -228,7 +228,7 @@ That is the skill we will try next.
 
 We have not yet walked through the Pakistan harmonization in detail.
 
-Using the **GLD Manual** and the **Pakistan 2024 harmonization program**, try to trace the variable:
+Using the [**GLD Manual**](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/Education.html) and the [**Pakistan 2024 harmonization program**](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do), try to trace the variable:
 
 ```text
 educat7
@@ -255,13 +255,20 @@ Original survey variables
 ```
 
 <details>
-<summary>Reveal: what should you find?</summary>
+<summary><strong>Reveal: what should you find?</strong></summary>
 
 `educat7` is in **Section 6: Education**.
 
 For Pakistan 2024, the construction begins from the survey variable `s4c9` and also uses `s4c10` for some categories:
 
 ```stata
+
+*  Variable      Storage   Display    Value
+*      name         type    format    label      Variable label
+*  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*  s4c9            double  %38.0g     S4C9       Education Level
+*  s4c10           double  %33.0g     S4C10      Current Enrollment
+
 gen byte educat7 = s4c9
 
 recode educat7 (3=2) (4=3) (5/6=4) (8/16=7)
@@ -331,35 +338,11 @@ gen byte urban = region
 recode urban 1=0 2=1
 
 label var urban "Location is urban"
-
-label define lblurban ///
-    1 "Urban" ///
-    0 "Rural"
-
+label define lblurban 1 "Urban" 0 "Rural"
 label values urban lblurban
 ```
 
-This is close to the simplest harmonization case.
-
-The survey already contains the information we need. GLD changes the coding so that it follows the common GLD definition:
-
-```text
-0 = Rural
-1 = Urban
-```
-
-Conceptually:
-
-```text
-Pakistan survey variable
-        region
-           |
-           | recode to GLD convention
-           v
-         urban
-```
-
-Not every harmonized variable needs complicated processing. A common data dictionary is useful precisely because even simple concepts can otherwise be represented differently across surveys.
+This is close to the simplest harmonization case. The survey already contains the information we need. GLD changes the coding so that it follows the common GLD definition (from 1 - Rural / 2 - Urban to 0 - Rural / 1 - Urban). 
 
 ### 5.3 `lstatus`: construct a concept from the questionnaire
 
@@ -395,8 +378,7 @@ gen byte lstatus = .
 replace lstatus = 1 if s5c1 == 1
 
 * Had a job but was temporarily absent
-replace lstatus = 1 ///
-    if s5c4 == 1 & (s5c6 == 1 | s5c7 == 1) ///
+replace lstatus = 1 if s5c4 == 1 & (s5c6 == 1 | s5c7 == 1) ///
     & missing(lstatus)
 
 * Farming/livestock/fishing mainly or only for sale
@@ -415,8 +397,6 @@ replace lstatus = 3 ///
     if missing(lstatus) & age >= minlaborage
 ```
 
-This example demonstrates why harmonization is not merely renaming columns.
-
 To understand `lstatus`, we potentially need:
 
 ```text
@@ -431,7 +411,7 @@ survey skip patterns
 harmonization decisions
 ```
 
-This is also why GLD makes the code and Country Survey Details available alongside the harmonized data.
+This is also why GLD makes the code and [Country Survey Details available alongside the harmonized data](https://github.com/worldbank/gld/blob/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS/Labor_Status_and_Labor_Force_Participation.md).
 
 ### 5.4 Occupation: preserve -> standardize -> derive
 
@@ -469,21 +449,15 @@ For Pakistan 2024 this step is unusually direct because the national classificat
 The program nevertheless validates the resulting codes against the ISCO universe and corrects a code that does not belong to the valid classification:
 
 ```stata
-replace occup_isco = "4100" ///
-    if occup_isco == "4140"
+replace occup_isco = "4100" if occup_isco == "4140"
 ```
 
 This is an important distinction:
 
 ```text
-occup_orig
-    =
-what the source survey records
+occup_orig => what the source survey records
 
-occup_isco
-    =
-that information expressed and checked
-against the relevant international standard
+occup_isco => information expressed and checked against the relevant international standard
 ```
 
 For another survey, moving between these two steps may require a more substantial mapping.
@@ -497,7 +471,6 @@ Conceptually:
 ```text
 1000–1999 -> Managers
 2000–2999 -> Professionals
-3000–3999 -> Technicians
 ...
 9000–9999 -> Elementary occupations
 0000–0999 -> Armed forces
@@ -510,12 +483,7 @@ gen byte occup = .
 
 replace occup = 1  if inrange(occup_isco, "1000", "1999")
 replace occup = 2  if inrange(occup_isco, "2000", "2999")
-replace occup = 3  if inrange(occup_isco, "3000", "3999")
-replace occup = 4  if inrange(occup_isco, "4000", "4999")
-replace occup = 5  if inrange(occup_isco, "5000", "5999")
-replace occup = 6  if inrange(occup_isco, "6000", "6999")
-replace occup = 7  if inrange(occup_isco, "7000", "7999")
-replace occup = 8  if inrange(occup_isco, "8000", "8999")
+...
 replace occup = 9  if inrange(occup_isco, "9000", "9999")
 replace occup = 10 if inrange(occup_isco, "0000", "0999")
 ```
@@ -538,7 +506,7 @@ Original Pakistan occupation information
               DERIVE
 ```
 
-Those three variables are deliberately all retained.
+Those three variables are deliberately all retained. 
 
 A researcher interested only in broad occupational groups can use `occup`.
 
