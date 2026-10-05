@@ -20,7 +20,7 @@ local path_input "C:/your/path/gld_workshop"
 use "`path_input'/[File from Block 3 if you saved it]", clear
 ```
 
-The ICLS comparison is complete in [Block 3, Section 5](.Block_3_Expanding_the_GLD.md#5-check-the-saved-file-and-evaluate-the-icls-results). Here we use the commuting additions and the existing GLD variables.
+The ICLS comparison is complete in [Block 3, Section 5](Block_3_Expanding_the_GLD.md#5-check-the-saved-file-and-evaluate-the-icls-results). Here we use the commuting additions and the existing GLD variables.
 
 ## 2. Example 1: Use the survey information we added
 
