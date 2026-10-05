@@ -2,31 +2,29 @@
 
 **Pakistan LFS 2024-25 | Duration: 35 minutes | Two examples using the research dataset**
 
-We have gone from the original survey to a dataset ready for research. We can now ask substantive questions without rebuilding the variables behind each one.
+The expanded survey dataset is ready for analysis. Its harmonized variables and survey-specific additions support substantive applications without reconstructing the underlying measures.
 
-We will do two things:
+This block presents two applications:
 
 1. **Use information we added from the survey.** Compare commuting direction and time, with and without the standard GLD occupation variable `occup`.
 2. **Link to information from outside the survey.** Use the harmonized occupation code `occup_isco` to attach AI exposure and complementarity scores, then compare workers with different education levels and compare women and men.
 
-The first example stays entirely within the survey. The second demonstrates interoperability: a common classification makes an external source usable alongside the GLD variables we already have.
+The first example uses only survey information. The second demonstrates interoperability: a common classification allows external occupation-level measures to be combined with the GLD variables.
 
 ## 1. Open the research dataset
 
-Use the expanded dataset saved in Block 3, wherever you chose to put it. Run the code blocks in order, or use the complete script linked in Section 4 as an alternative. The results shown below are rounded; compare them with your computed output.
+The analysis uses the expanded dataset saved in Block 3. Paths are user-defined; the example below should point to its actual location. The code blocks follow execution order, and the complete code is collected in the annex after the sources. Reported results are rounded.
 
 ```stata
 local path_input "C:/your/path/gld_workshop"
-use "`path_input'/PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta", clear
+use "`path_input'/[File from Block 3 if you saved it]", clear
 ```
 
-The ICLS comparison is complete in [Block 3, Section 5](../3%20-%20Expand/Block_3_Expanding_the_GLD.md#5-check-the-saved-file-and-evaluate-the-icls-results). Here we use the commuting additions and the existing GLD variables.
+The ICLS comparison is complete in [Block 3, Section 5](.Block_3_Expanding_the_GLD.md#5-check-the-saved-file-and-evaluate-the-icls-results). Here we use the commuting additions and the existing GLD variables.
 
 ## 2. Example 1: Use the survey information we added
 
 ### 2.1. Compare commuting direction and time
-
-**Which residence-to-work pattern has the largest share of long commutes?**
 
 `work_mobility` combines rural/urban residence with rural/urban workplace location. `commute_time` retains the questionnaire's time categories, and `long_commute` identifies journeys exceeding 45 minutes.
 
@@ -54,7 +52,7 @@ Combining the categories into journeys of at most 45 minutes and longer journeys
 | Urban -> Urban | 89.13% | 10.87% |
 | Total | 89.64% | 10.36% |
 
-The contrast is immediate: about 5% of rural-to-rural workers report a long commute, compared with about 29% of rural-to-urban workers. That is a difference of roughly 24 percentage points. This is information we could not have obtained from the standard GLD variables alone.
+About 5% of rural-to-rural workers report a long commute, compared with about 29% of rural-to-urban workers, a difference of roughly 24 percentage points. The survey-specific additions make this comparison possible; the standard GLD variables alone do not contain commuting information.
 
 Adding the `chi2` option to either table gives a Pearson test of independence (`p < .001` here). Like the models below, these tests do not account for the survey design.
 
@@ -71,14 +69,12 @@ The rural-to-urban odds ratio is about 7.64; that does not mean its probability 
 
 ### 2.3. Add the harmonized occupation variable
 
-**Does the difference remain when we account for occupation?**
-
 ```stata
 logistic long_commute ib1.work_mobility i.occup
 margins work_mobility
 ```
 
-We did not have to reconstruct occupation. `occup`, the standard GLD one-digit occupation grouping, is already available alongside our commuting variables.
+The standard GLD one-digit occupation grouping, `occup`, is already available alongside the commuting variables. Including it accounts for differences in occupational composition without further harmonization.
 
 | Residence-to-work pattern | Unadjusted odds ratio | Occupation-adjusted odds ratio |
 | --- | ---: | ---: |
@@ -87,15 +83,13 @@ We did not have to reconstruct occupation. `occup`, the standard GLD one-digit o
 | Urban -> Rural | 2.77 | 2.35 |
 | Urban -> Urban | 2.29 | 1.39 |
 
-Compare the predicted probabilities from the two models as well. The rural-to-urban odds ratio falls to about 4.64 after adding occupation. The unadjusted model uses 99,785 observations and the adjusted model 99,783. The samples differ slightly, and odds ratios are non-collapsible: their change is not a measure of how much of the commuting difference occupation causally explains.
+The rural-to-urban odds ratio falls to about 4.64 after adding occupation. The corresponding predicted probability falls from 28.91% to 22.82%. The unadjusted model uses 99,785 observations and the adjusted model 99,783. The samples differ slightly, and odds ratios are non-collapsible: their change is not a measure of how much of the commuting difference occupation causally explains.
 
 These models illustrate sample associations. Their standard errors do not account for the survey design. Population inference requires an appropriate specification of weights, strata, and PSUs from the survey documentation.
 
 ## 3. Example 2: Link to external AI scores
 
-**Do workers with different education levels work in occupations with different average AI exposure and complementarity? Does the pattern differ between women and men?**
-
-The survey did not ask about AI. But it records occupations, and GLD has already expressed those occupations in a common classification. We can therefore link an external occupation-level measure without returning to the raw survey.
+The second application compares occupational AI exposure and potential complementarity across education and sex groups. Although the survey does not ask about AI, its harmonized occupation codes allow external occupation-level measures to be attached without returning to the raw survey.
 
 ### 3.1. Obtain and understand the scores
 
@@ -117,7 +111,7 @@ The Pakistan harmonization identifies its occupation classification as `isco_200
 
 The supplied mapping contains both detailed and aggregate occupation codes. We use exact matches to the supplied keys, including aggregate codes where the survey reports them. We do not manufacture a more detailed occupation or recalculate an aggregate score.
 
-Run this block together. It prepares a temporary lookup, restores the survey, and performs a many-to-one merge without saving over either input:
+The following block prepares a temporary lookup, restores the survey, and performs a many-to-one merge without saving over either input. It must be executed together because the temporary filename is held in a local macro:
 
 ```stata
 local path_scores "C:/your/path/gld_workshop"
@@ -126,8 +120,8 @@ import delimited using "`path_scores'/c_aioe_scores.csv", clear varnames(1) stri
 keep occup_isco aioe_all complementarity_theta c_aioe
 isid occup_isco
 foreach score in aioe_all complementarity_theta c_aioe {
-	replace `score' = "" if `score' == "NA"
-	destring `score', replace
+    replace `score' = "" if `score' == "NA"
+    destring `score', replace
 }
 
 tempfile ai_scores
@@ -158,36 +152,20 @@ keep if inlist(_merge, 1, 3)
 drop _merge
 ```
 
-The lookup must have only one row per key. Keeping master and match retains every survey observation but excludes occupations found only in the lookup. The CSV's `NA` tokens become missing numeric values, not zero scores.
+The lookup must have only one row per key. After inspecting the merge, `keep if inlist(_merge, 1, 3)` retains every survey observation but excludes occupations found only in the lookup. The CSV's `NA` tokens become missing numeric values, not zero scores.
 
-### 3.3. Check coverage before comparing groups
+### 3.3. Compare weighted average scores
 
-Use respondents aged 15 and above who are employed under the standard survey definition and have a positive, nonmissing weight. Require all three scores so their means describe the same workers. We do not assign detailed occupation scores to the additional ICLS-13 employed group using assumed occupations.
+The sample consists of respondents aged 15 and above who are employed under the standard survey definition, have a positive, nonmissing weight, and have all three occupation scores. Requiring all three scores keeps the comparisons on a common sample. Missing scores are excluded rather than interpreted as zero exposure. The additional ICLS-13 employed group is not assigned scores from assumed occupations.
 
 ```stata
 gen byte ai_eligible = lstatus == 1 & age >= 15 & !missing(age) & weight > 0 & !missing(weight)
 gen byte ai_scored = ai_eligible & !missing(aioe_all, complementarity_theta, c_aioe)
-tab ai_merge if ai_eligible, missing
-count if ai_eligible & ai_merge == 3 & !ai_scored
-tab ai_scored if ai_eligible [iw=weight]
-tabstat ai_scored if ai_eligible [aw=weight], by(educat4) statistics(mean)
-tabstat ai_scored if ai_eligible [aw=weight], by(male) statistics(mean)
-```
-
-`ai_merge` distinguishes unmatched survey records from matched keys. A matched key can still have missing scores. The lookup has 590 unique keys, including seven armed-forces keys with missing scores. The mean of `ai_scored` is the weighted share with scores, on a 0-1 scale. Check it by education and sex: unequal coverage can affect comparisons. Missing scores never mean no exposure.
-
-For the supplied Pakistan release, all 97,128 eligible workers match and have all three scores: weighted coverage is 100% overall and within the education and sex groups. None uses an unscored key. The 225,662 unmatched survey records in the full merge are outside this analysis sample.
-
-### 3.4. Compare weighted average scores
-
-```stata
 tabstat c_aioe aioe_all complementarity_theta if ai_scored [aw=weight], by(educat4) statistics(mean) format(%9.3f)
 tabstat c_aioe aioe_all complementarity_theta if ai_scored [aw=weight], by(male) statistics(mean) format(%9.3f)
-graph hbar (mean) c_aioe if ai_scored [aw=weight], over(educat4) ///
-	title("C-AIOE by education") ytitle("Weighted mean occupation score")
 ```
 
-These commands use the survey weights to calculate descriptive weighted means among workers with scores; they do not estimate survey-design-adjusted uncertainty. Groups with missing education or sex are excluded from the corresponding grouped comparison. Each column is a different measure: compare groups within a column, not ratios between columns.
+For this Pakistan release, the sample contains 97,128 workers, all with matching keys and all three scores. These commands use the survey weights to calculate descriptive weighted means; they do not estimate survey-design-adjusted uncertainty. Groups with missing education or sex are excluded from the corresponding grouped comparison. Each column represents a different measure, so comparisons concern groups within a column rather than ratios between columns.
 
 | Education | C-AIOE | AIOE | Potential complementarity |
 | --- | ---: | ---: | ---: |
@@ -196,8 +174,6 @@ These commands use the survey weights to calculate descriptive weighted means am
 | Secondary | 4.345 | 5.980 | 0.580 |
 | Post-secondary | 4.394 | 6.194 | 0.598 |
 | All eligible workers | 4.312 | 5.799 | 0.563 |
-
-Read the columns together. Does higher education coincide with greater AIOE? Is it also associated with greater potential complementarity? Does the education pattern look different for C-AIOE?
 
 In this release, AIOE and potential complementarity both rise across the education groups, while C-AIOE changes relatively little. These are weighted occupation-score means, not percentages or evidence of an individual return to education.
 
@@ -212,23 +188,9 @@ Pizzinelli et al. find that higher exposure can coexist with greater complementa
 
 The measures rely on US O*NET occupational characteristics and the technology coverage of the cited studies. Pakistan's tasks, working conditions, and AI adoption may differ. These are not continuously updated measures of the latest generative AI systems.
 
-## 4. Run both examples in one script
+The two applications illustrate distinct uses of the same research dataset: analysing information retained from the survey and joining an external source through a standard classification. Both rely on the documented harmonization completed in the preceding blocks.
 
-The [complete analysis script](PAK_2024_LFS_V01_M_V01_A_GLD_ANALYSIS.do) runs both examples, reports coverage, and produces the graphs. Download it to your chosen script location. Pass the expanded-data folder, CSV folder, and log folder in that order:
-
-```stata
-local path_input "C:/your/path/gld_workshop"
-local path_scores "C:/your/path/gld_workshop"
-local path_output "C:/your/path/gld_workshop"
-do "C:/your/path/gld_workshop/PAK_2024_LFS_V01_M_V01_A_GLD_ANALYSIS.do" ///
-	"`path_input'" "`path_scores'" "`path_output'"
-```
-
-Run these lines together. The folders may be the same or different; no particular folder name or layout is required. The log folder must exist and be writable. Rerunning replaces the analysis log, not the expanded dataset or CSV. The linked scores remain in memory for further analysis.
-
-We have used the same research dataset in two ways: adding analytical value from the survey itself, and joining an external source through a standard classification. That is the practical benefit of a documented, reusable harmonization.
-
-## 5. Sources and attribution
+## 4. Sources and attribution
 
 Felten, E., Raj, M., & Seamans, R. (2021). Occupational, industry, and geographic exposure to artificial intelligence: A novel dataset and its potential uses. *Strategic Management Journal*, 42(12), 2195-2217. [doi:10.1002/smj.3286](https://doi.org/10.1002/smj.3286).
 
@@ -237,3 +199,64 @@ Pizzinelli, C., Panton, A., Tavares, M. M., Cazzaniga, M., & Li, L. (2023). *Lab
 The mappings were shared with the GLD team by the authors of Pizzinelli et al. Please cite both papers when using the scores and retain the required disclaimer:
 
 > The authors of the paper are solely responsible for this data. This data should not be interpreted as the official view of the International Monetary Fund, its Management, or its Board.
+
+## Annex - Analysis Code
+
+The following code reproduces both examples. The two paths refer to the expanded dataset and the downloaded AI scores; they may be the same folder or different folders. Executing the block in full keeps the local macros in scope. Neither input is overwritten, and the linked dataset remains in memory.
+
+```stata
+local path_input "C:/your/path/gld_workshop"
+local path_scores "C:/your/path/gld_workshop"
+
+use "`path_input'/[File from Block 3 if you saved it]", clear
+
+tab work_mobility commute_time, row
+tab work_mobility long_commute, row
+
+logistic long_commute ib1.work_mobility
+margins work_mobility
+
+logistic long_commute ib1.work_mobility i.occup
+margins work_mobility
+
+preserve
+import delimited using "`path_scores'/c_aioe_scores.csv", clear varnames(1) stringcols(_all)
+keep occup_isco aioe_all complementarity_theta c_aioe
+isid occup_isco
+foreach score in aioe_all complementarity_theta c_aioe {
+    replace `score' = "" if `score' == "NA"
+    destring `score', replace
+}
+
+tempfile ai_scores
+save `ai_scores'
+restore
+
+confirm string variable occup_isco
+assert isco_version == "isco_2008" if !missing(occup_isco)
+merge m:1 occup_isco using `ai_scores'
+
+* We should see all three merge options:
+
+* Codes from the AI scores data matched (_merge == 3)
+
+* Rows that were not matched. These are people without ISCO codes, 
+* most of them should not be employed (_merge == 1)
+
+* Codes that AI scores (comprehensive of ISCO code universe)
+* has, but are not present in the data.
+* For example no codes 2422 "Policy administration professionals"
+* were interviewed in 2024 in Pakistan - quite a pity!
+
+* Checking answers that had no match (all should be unemployed, NLF or kids)
+tab lstatus if _merge == 1,m
+
+* Drop _merge variable after keeping cases either only from PaK 24 (_merge == 1) or matched (_merge == 3)
+keep if inlist(_merge, 1, 3)
+drop _merge
+
+gen byte ai_eligible = lstatus == 1 & age >= 15 & !missing(age) & weight > 0 & !missing(weight)
+gen byte ai_scored = ai_eligible & !missing(aioe_all, complementarity_theta, c_aioe)
+tabstat c_aioe aioe_all complementarity_theta if ai_scored [aw=weight], by(educat4) statistics(mean) format(%9.3f)
+tabstat c_aioe aioe_all complementarity_theta if ai_scored [aw=weight], by(male) statistics(mean) format(%9.3f)
+```
