@@ -43,7 +43,7 @@ Standard GLD variables
       |
       +--------------------> Analysis using GLD as-is
       |
-      +--------------------> Research-specific extensions
+      +--------------------> Research-specific additions
 ```
 
 There are therefore two broad ways to use GLD.
@@ -54,7 +54,7 @@ A researcher can work directly with the variables defined in the GLD data dictio
 **Build on the harmonization.**  
 A researcher can start from the existing GLD work and change a definition, recover more detail, or add survey-specific information needed for a particular research question.
 
-Blocks 2 and 3 of this workshop will do exactly those two things: first reproduce a GLD harmonization, and then extend it.
+Blocks 2 and 3 of this workshop will do exactly those two things: first reproduce a GLD harmonization, and then expand it.
 
 ### What surveys and variables are available?
 
