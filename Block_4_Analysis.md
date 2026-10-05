@@ -153,11 +153,12 @@ merge m:1 occup_isco using `ai_scores'
 * Checking answers that had no match (all should be unemployed, NLF or kids)
 tab lstatus if _merge == 1,m
 
-* Drop _merge variable
+* Drop _merge variable after keeping cases either only from PaK 24 (_merge == 1) or matched (_merge == 3)
+keep if inlist(_merge, 1, 3)
 drop _merge
 ```
 
-The lookup must have only one row per key. `keep(master match)` retains every survey observation but excludes occupations found only in the lookup. The CSV's `NA` tokens become missing numeric values, not zero scores.
+The lookup must have only one row per key. Keeping master and match retains every survey observation but excludes occupations found only in the lookup. The CSV's `NA` tokens become missing numeric values, not zero scores.
 
 ### 3.3. Check coverage before comparing groups
 
