@@ -2,7 +2,7 @@
 
 **Pakistan LFS 2024-25 | Proposed duration: 35 minutes | Construct and check both additions**
 
-This block adds variables, evaluates the effect of changing the ICLS definition, and produces the research dataset [Block 4](Block_4_Analysis.md) uses to study commuting and link external AI occupation scores. 
+This block builds on the corrected harmonization program you created in Block 2. You will add variables, evaluate the effect of changing the ICLS definition, and produce the research dataset [Block 4](Block_4_Analysis.md) uses to study commuting and link external AI occupation scores.
 
 ## 1. Introduction
 
@@ -26,7 +26,7 @@ In this exercise, we use the **Pakistan Labour Force Survey (LFS) 2024** to exam
 
 These are different ways to expand the GLD, but the principle is the same:
 
-> **Start from the harmonized data and concentrate additional harmonization effort on the information required for your research question.**
+> **Build on your working harmonization program and concentrate additional effort on the information required for your research question.**
 
 ## 2. Starting point
 
@@ -36,10 +36,10 @@ We already have:
 
 -   the original Pakistan LFS data;
 -   the [questionnaire](Docs/Questionnaire-of-LFS-2024-25-Final.pdf) and [supporting documentation](https://github.com/worldbank/gld/tree/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS);
--   the GLD harmonization do-file; and
--   the harmonized GLD dataset produced by that do-file.
+-   your corrected harmonization do-file from Block 2; and
+-   the standard harmonized GLD dataset you saved locally with that do-file.
 
-We do **not** need to reconstruct the entire harmonization.
+We do **not** need to write the harmonization again. We will add code to a copy of your working program and rerun it from the original survey inputs. We are not adding variables directly to the saved Block 2 dataset, because the new variables use source questions that the standard output does not retain.
 
 The existing program has already done substantial work for us. For example, it has constructed variables such as:
 
@@ -54,19 +54,15 @@ The existing program has already done substantial work for us. For example, it h
 
 Our task is to identify what additional information our research requires.
 
-### Run the harmonization with additions
+### Continue with your Block 2 program
 
 Continue with the working folder or folder layout you chose in Block 2. There is no requirement to create a new folder for this block. Feel free to do so if that is your preference.
 
-Download [Build the expanded dataset](PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do), a copy of the harmonization from Block 2 with Section 8A added, to your chosen script location. It reads the original survey and lookup inputs from Block 2 and saves a separate `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta` dataset.
+Use **Save As** on the corrected Block 2 program to make a second copy, for example `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDER.do`. Keep your Block 2 version unchanged so it still reproduces the standard harmonization. You will add the Block 3 variables to this copy.
 
-Before running it, replace its Section 1.2 path settings with your own locations, as shown in Section 3 below. The supplied file's paths are examples from the workshop author's setup, not required folders. Then run your edited copy, using its actual location; for a single-folder layout this could be:
+Your copy already contains your corrected input filename, path settings, and other repairs from Block 2. Keep them. Work through Sections 3 and 4 below to change the output name and add the research variables before running the program.
 
-``` stata
-do "C:/your/path/gld_workshop/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do"
-```
-
-Run the file in full so its local macros remain in scope. For participants executing the code, the software dependencies are the same as in [Block 2](../2%20-%20Recreate/Block_2_Reproduce_GLD.md), including internet access for classification validation.
+The inputs and software dependencies remain those used in [Block 2](../2%20-%20Recreate/Block_2_Reproduce_GLD.md), including internet access for classification validation. No new harmonization do-file is needed.
 
 ------------------------------------------------------------------------
 
@@ -74,23 +70,19 @@ Run the file in full so its local macros remain in scope. For participants execu
 
 The GLD harmonization template separates the work into stages. For a research-specific expansion, there are three places to think about:
 
-1.  **Section 1.2 --- directories and output name:** rename the output so the Block 2 file is not overwritten.
+1.  **Section 1.2 --- directories and output name:** in your copied Block 2 program, change the output name so the Block 2 file is not overwritten.
 2.  **Section 8A --- user-defined additions:** create the additional variables after creating the standard ones.
 3.  **Section 9 --- final steps:** add the new variables to the final `keep` list.
 
-The GLD template defines the standard output in Section 1.2 as an `_ALL.dta` file. For our research version, we create a separate `_EXPANDED.dta` output. For example:
+In Block 2, you set the output name to `_RECREATED.dta`. In Section 1.2 of your copied program, replace only the `out_file` definition with:
 
 ``` stata
-*----------1.2: Set directories------------------------------*
-
-local path_in_stata "C:/your/path/gld_workshop"
-local path_output "`path_in_stata'"
-local out_file "PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED"
+local out_file "`level_2_harm'_EXPANDED.dta"
 ```
 
-Set `path_in_stata` to the folder containing your original survey and lookup inputs, not the recreated dataset. Set `path_output` to your chosen output folder; it may be the same folder, as above, or a separate existing, writable folder. Retain the other metadata locals in Section 1.2. The distinct output filename preserves the Block 2 `_RECREATED.dta` file even when both outputs share a folder. Rerunning the expander replaces the existing expanded output and regenerates the migration lookup in the input folder, which must also be writable.
+Retain all the path and metadata locals you defined in Block 2, including `level_2_harm`. The new filename will be `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta`, saved in your existing `path_output` folder. You may choose a different existing, writable output folder if you prefer, but there is no need to change the input paths. The distinct filename preserves your `_RECREATED.dta` output. Rerunning the expanded program replaces its expanded output and regenerates the migration lookup in the input folder, just as in Block 2.
 
-After the standard harmonization has created its variables (last block to create variables is section 8), we insert a section 8A:
+Next, insert a new Section 8A between the end of Section 8 and the start of Section 9 in your copied program. Leave the existing Section 8 code intact. The outline below shows the insertion point; the bracketed text is a placeholder, not executable Stata code:
 
 ``` stata
 
@@ -117,19 +109,13 @@ After the standard harmonization has created its variables (last block to create
 
 This keeps our additions separate from the standard GLD construction.
 
-Finally, Section 9 matters because the harmonization explicitly controls the variables retained in the output. The variables created in Section 8A therefore need to be added to the final `keep` statement. For this exercise that includes, for example:
-
-``` stata
-keep [**vars already in GLD dictionary standard set**] [**variables we added**]
-```
-
-and save it to as the new expansion file. Conceptually, the workflow is therefore:
+Finally, Section 9 explicitly controls the variables retained in the output. You will add the new variables to its existing `keep` statement in Section 4.3 below, retaining the standard variable list and the rest of the final steps. Conceptually, the workflow is:
 
 ``` text
     Original survey files
             |
             v
-    Section 1.2: define your paths
+    Section 1.2: retain your paths and change the output name
             |
             v
     Sections 2–8: standard GLD harmonization
@@ -144,11 +130,11 @@ and save it to as the new expansion file. Conceptually, the workflow is therefor
     Research analysis
 ```
 
-The important distinction is that `_ALL` remains the standard GLD product. `_EXPANDED` (or other) is our research-specific version built from the same harmonization.
+Your Block 2 program and `_RECREATED.dta` output remain the standard reproduction. The copied program and `_EXPANDED.dta` output are your research-specific version built from that same harmonization.
 
 ## 4. Add the new variables
 
-We create both sets of additions in Section 8A before examining either one: parallel labour variables under ICLS-13, and variables describing workplace location and commuting.
+Insert the construction code from Sections 4.1 and 4.2 into your new Section 8A, in the order shown. We create both sets of additions before examining either one: parallel labour variables under ICLS-13, and variables describing workplace location and commuting.
 
 The 2024 Pakistan LFS implements the newer ICLS framework. Under ICLS-19, own-use production is separated from employment for pay or profit. This changes the treatment of people engaged in farming, livestock rearing, or fishing mainly or only for family use.
 
@@ -156,7 +142,7 @@ The standard harmonized variable `lstatus` is coded as the survey intends. That 
 
 ### 4.1. Add an alternative ICLS definition
 
-We first identify own-use agricultural producers who are not employed under the ICLS-19 construction but would be treated as employed under ICLS-13. The code below is the code used in the expanded harmonization.
+We first identify own-use agricultural producers who are not employed under the ICLS-19 construction but would be treated as employed under ICLS-13. Add the following code at the start of Section 8A in your copied program.
 
 ``` stata
 * ------------------------------------------------------------------
@@ -270,7 +256,7 @@ local extension_vars extra_icls_13_emp lstatus_13 empstat_13 ocusec_13 ///
     industrycat10_13 occup_13 work_location commute_time work_mobility long_commute
 ```
 
-Then pass the local to the `keep` command in Section 9 alongside the standard GLD variables:
+In the existing Section 9 `keep` command, insert `extension_vars` as a macro reference before the standard variable list, as illustrated below. Keep that list and the remaining Section 9 code unchanged; do not paste the placeholder `[STANDARD GLD VARIABLES]` into your program.
 
 ``` stata
 /*%%=============================================================================================
@@ -282,7 +268,15 @@ quietly {
 }
 ```
 
-This ensures that the new variables survive the final variable selection. Run the full expander now, including its final save command, to save the expanded dataset in your chosen output folder.
+This ensures that the new variables survive the final variable selection. Keep the existing final save command: it uses the output name you changed in Section 1.2.
+
+Save your edits, then run the **whole copied do-file**, not just Section 8A, so the local macros remain in scope. Use your actual script location and filename; for the example name in Section 2:
+
+```stata
+do "C:/your/path/gld_workshop/PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDER.do"
+```
+
+The program reads your original inputs, reruns the standard harmonization, constructs the additions, and saves the expanded dataset in your chosen output folder.
 
 ## 5. Check the saved file and evaluate the ICLS results
 
@@ -355,10 +349,10 @@ An assertion passes silently and stops with an error if the expected result does
 
 ## 6. Carry forward to analysis
 
-We have made two additions within the same harmonization workflow. One creates a transparent alternative definition; the other retains survey information outside the common dictionary and combines it with the standard GLD core.
+We have added two research components to the Block 2 harmonization. One creates a transparent alternative definition; the other retains survey information outside the common dictionary and combines it with the standard GLD core.
 
 ```text
-Original survey + existing GLD harmonization code
+Original survey + your corrected Block 2 program, copied for expansion
     -> standard GLD variables
     -> Section 8A: parallel ICLS variables + commuting variables
     -> Section 9: retain both sets and save _EXPANDED.dta
@@ -366,6 +360,6 @@ Original survey + existing GLD harmonization code
     -> Block 4: analyse commuting and link external AI occupation scores
 ```
 
-The demographic variables, classifications, identifiers, and weights remain available. We can now concentrate on research questions without rebuilding their construction. Keep the expanded dataset, the modified program, and a record of their locations so the additional decisions remain reproducible. Block 4 can use this output directly from wherever you saved it.
+The demographic variables, classifications, identifiers, and weights remain available. We can now concentrate on research questions without rebuilding their construction. Keep both do-files, the original inputs, the expanded dataset, and a record of their locations so the additional decisions remain reproducible. Block 4 can use this output directly from wherever you saved it.
 
 In [Block 4](Block_4_Analysis.md), we describe commuting patterns with and without the existing occupation variable `occup`. We then use the harmonized code `occup_isco` to link external AI scores and compare worker groups using GLD's education, sex, and weight variables.
