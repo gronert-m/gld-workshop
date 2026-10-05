@@ -1,5 +1,9 @@
 # Block 3: Extending the GLD
 
+**Pakistan LFS 2024-25 | Proposed duration: 35 minutes | Construct and check both extensions**
+
+This block produces the research dataset and evaluates the effect of changing the ICLS definition. [Block 4](../4%20-%20Analysis/Block_4_Analysis_Proposal.md) uses the saved dataset to study commuting. Participants following the demonstration can inspect the questionnaire, predict the recodes, and identify which variables must survive the final `keep` command.
+
 ## 1. Introduction
 
 In the previous blocks, we introduced the Global Labour Database (GLD), its data dictionary, and the harmonization workflow. We then reproduced a harmonization from the original survey data and created a standard harmonized GLD dataset.
@@ -32,7 +36,8 @@ We already have:
 
 -   the original Pakistan LFS data;
 -   the questionnaire and supporting documentation;
--   the GLD harmonization do-file.
+-   the GLD harmonization do-file; and
+-   the harmonized GLD dataset produced by that do-file.
 
 We do **not** need to reconstruct the entire harmonization.
 
@@ -49,6 +54,22 @@ The existing program has already done substantial work for us. For example, it h
 
 Our task is to identify what additional information our research requires.
 
+### Run the harmonization with extensions
+
+Continue with the working folder or folder layout you chose in Block 2. There is no requirement to create a new folder for this block. Feel free to do so if that is your preference.
+
+Download [Build the extended dataset](PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do), a copy of the harmonization from Block 2 with Section 8A added, to your chosen script location. It reads the original survey and lookup inputs from Block 2 and saves a separate `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta` dataset.
+
+Before running it, replace its Section 1.2 path settings with your own locations, as shown in Section 3 below. The supplied file's paths are examples from the workshop author's setup, not required folders. Then run your edited copy, using its actual location; for a single-folder layout this could be:
+
+``` stata
+do "C:/your/path/gld_workshop/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do"
+```
+
+Run the file in full so its local macros remain in scope. For participants executing the code, the software dependencies are the same as in [Block 2](../2%20-%20Recreate/Block_2_Reproduce_GLD.md), including internet access for classification validation.
+
+------------------------------------------------------------------------
+
 ## 3. Where should extensions go?
 
 The GLD harmonization template separates the work into stages. For a research-specific extension, there are three places to think about:
@@ -62,13 +83,12 @@ The GLD template defines the standard output in Section 1.2 as an `_ALL.dta` fil
 ``` stata
 *----------1.2: Set directories------------------------------*
 
-** Ad-Hoc paths for Expansion Exercise
-local gen_path "C:/Users/wb529026/WBG/WKPEJ Files - GLD Expansion - P509260/Dissemination and Tracking GLD Use/GLD Workshop/Examples"
-local path_in_stata "`gen_path'/1 - Recreate"
-
-local path_output "`gen_path'/2 - Expand"
-local out_file "PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta"
+local path_in_stata "C:/your/path/gld_workshop"
+local path_output "`path_in_stata'"
+local out_file "PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED"
 ```
+
+Set `path_in_stata` to the folder containing your original survey and lookup inputs, not the recreated dataset. Set `path_output` to your chosen output folder; it may be the same folder, as above, or a separate existing, writable folder. Retain the other metadata locals in Section 1.2. The distinct output filename preserves the Block 2 `_RECREATED.dta` file even when both outputs share a folder. Rerunning the expander replaces the existing expanded output and regenerates the migration lookup in the input folder, which must also be writable.
 
 After the standard harmonization has created its variables (last block to create variables is section 8), we insert a section 8A:
 
@@ -140,8 +160,12 @@ We first identify own-use agricultural producers who are not employed under the 
 
 ``` stata
 * ------------------------------------------------------------------
-* 1. Identify respondents employed under ICLS-13 but not ICLS-19
+* ICLS 13th BRIDGE CODE — PAK LFS 2024
 * ------------------------------------------------------------------
+
+    * ------------------------------------------------------------------
+    * 1. Identify respondents employed under ICLS-13 but not ICLS-19
+    * ------------------------------------------------------------------
 
 gen byte extra_icls_13_emp = 0
 * own-use farming/livestock/fishing through S5C10
@@ -154,9 +178,9 @@ The `inlist(lstatus, 2, 3)` condition is deliberate. These respondents are alrea
 Once we treat this group as employed, we also need employment characteristics for them. Under the standard ICLS-19 construction these variables are missing because they are defined only for employed respondents. We therefore create the parallel variables in the same step: self-employment, private/NGO sector, agriculture, and skilled agricultural occupation are assigned characteristics, not observed answers to the skipped employment questions. The approach shown below mirrors the one used by the ILO's ILOSTAT team when differentiating between ICLS-13 and ICLS-19 versions.
 
 ``` stata
-* ------------------------------------------------------------------
-* 2. Construct parallel ICLS-13 variables
-* ------------------------------------------------------------------
+    * ------------------------------------------------------------------
+    * 2. Construct parallel ICLS-13 variables
+    * ------------------------------------------------------------------
 
 * Labour-force status
 gen byte lstatus_13 = lstatus
@@ -258,21 +282,30 @@ quietly {
 }
 ```
 
-This ensures that the new variables survive the final variable selection and are saved in the expanded dataset.
+This ensures that the new variables survive the final variable selection. Run the full expander now, including its final save command, to save the expanded dataset in your chosen output folder.
 
-## 5. Evaluate the ICLS results
+## 5. Check the saved file and evaluate the ICLS results
+
+Open the file saved at the end of Section 4 and confirm that all ten added variables are present with a single command. Set `path_output` below to your chosen output folder and run the block together:
+
+```stata
+local path_output "C:/your/path/gld_workshop"
+use "`path_output'/PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta", clear
+confirm variable extra_icls_13_emp lstatus_13 empstat_13 ocusec_13 ///
+    industrycat10_13 occup_13 work_location commute_time work_mobility long_commute
+```
 
 We now have the standard variables and their alternative ICLS-13 counterparts:
 
-  Standard GLD      ICLS-13 extension
-  ----------------- ---------------------
-    `lstatus`         `lstatus_13`
-    `empstat`         `empstat_13`
-    `ocusec`          `ocusec_13`
-    `industrycat10`   `industrycat10_13`
-    `occup`           `occup_13`
+| Standard GLD | ICLS-13 extension |
+| --- | --- |
+| `lstatus` | `lstatus_13` |
+| `empstat` | `empstat_13` |
+| `ocusec` | `ocusec_13` |
+| `industrycat10` | `industrycat10_13` |
+| `occup` | `occup_13` |
 
-The standard variables remain untouched. The `_13` variables make the alternative definition explicit and can be used directly in analysis. Below a comparison of the results with one and the other. We can clearly see the impact of the definition change. 
+The standard variables remain untouched. The `_13` variables make the alternative definition explicit and can be used directly in analysis. The weighted results for respondents aged 15 and above show the impact of the definition change:
 
 | Indicator | ICLS-13 | ICLS-19 |
 | --- | ---: | ---: |
@@ -282,7 +315,11 @@ The standard variables remain untouched. The `_13` variables make the alternativ
 | Share of paid employees among agricultural workers | 13.60% | 14.83% |
 | Share of paid employees among all workers | 42.50% | 43.75% |
 
-The below is the code to check the results agree:
+Including own-use agricultural producers as employed raises labour force participation and agriculture's share of employment. The unemployment rate falls as the labour force denominator grows. Paid-employee shares fall because the additional workers are classified as self-employed. These differences follow the definition and the assigned characteristics discussed in Section 4.1; they are not interchangeable estimates of an unchanged concept.
+
+Labour force participation uses respondents with valid labour status as its denominator; unemployment uses the labour force; agricultural employment and paid-employee shares use the relevant employed group. These are weighted point estimates, not survey-design-adjusted uncertainty estimates.
+
+Run the following code together to check key weighted totals underlying the comparison against the expected results for this release. The category assertions ensure that the matrix entries refer to the intended groups; the totals are checked within one weighted person to allow for rounding. These checks support the comparison but do not independently test every percentage in the table.
 
 ``` stata
 tab lstatus if inrange(age, 15, 999) [iw=weight], matcell(freq) matrow(vals)
@@ -312,164 +349,23 @@ assert abs(empstat_ag_freq[4,1] - 9876372.7) < 1
 assert abs(empstat_13_ag_freq[4,1] - 12086779.3) < 1
 ```
 
+An assertion passes silently and stops with an error if the expected result does not match. If it fails, inspect the inputs and extension code before changing the expected values.
+
 > A harmonized variable is not only a variable name and coding scheme. Its underlying statistical definition matters as well. When a research question requires another definition, we can construct a transparent parallel version without reharmonizing the rest of the survey.
 
-## 6. Use the commuting variables
+## 6. Carry forward to analysis
 
-We now use the expanded dataset to study how commuting differs across rural and urban places of residence and work. The examples below deliberately use **unweighted sample estimates**. Their Pearson tests and model standard errors do not account for the survey design, and the associations are not causal effects. Population inference requires an appropriate specification of weights, strata, and PSUs using the survey documentation.
+We have made two extensions within the same harmonization workflow. One creates a transparent alternative definition; the other retains survey information outside the common dictionary and combines it with the standard GLD core.
 
-### 6.1. Describe commuting patterns
-
-Before constructing a model, start with the data. Missing commuting responses are not treated as zero commutes.
-
-``` stata
-tab work_mobility commute_time, row chi2
+```text
+Original survey + existing GLD harmonization code
+    -> standard GLD variables
+    -> Section 8A: parallel ICLS variables + commuting variables
+    -> Section 9: retain both sets and save _EXPANDED.dta
+    -> Check saved variables and evaluate the ICLS results
+    -> Block 4: analyse commuting
 ```
 
-The row percentages show a striking pattern.
+The demographic variables, classifications, identifiers, and weights remain available. We can now concentrate on research questions without rebuilding their construction. Keep the expanded dataset, the modified program, and a record of their locations so the additional decisions remain reproducible. Block 4 can use this output directly from wherever you saved it.
 
-| Residence-to-work pattern | <30 min | 31–45 min | 46–60 min | 61+ min |
-|---|---:|---:|---:|---:|
-| Rural → Rural | 80.45% | 14.50% | 2.82% | 2.23% |
-| Rural → Urban | 40.22% | 30.88% | 12.28% | 16.62% |
-| Urban → Rural | 64.99% | 22.17% | 6.83% | 6.01% |
-| Urban → Urban | 64.38% | 24.75% | 7.32% | 3.55% |
-
-Rural-to-rural workers have the shortest observed commuting times.
-
-Rural-to-urban workers stand out in the opposite direction. Only around 40 percent report commuting less than 30 minutes, while approximately 29 percent report commuting more than 45 minutes.
-
-The Pearson chi-square test rejects independence between the two variables (`p < .001`).
-
-We can also compare residence-to-work patterns using the `long_commute` indicator created in Section 4.2:
-
-``` stata
-tab work_mobility long_commute, row chi2
-```
-
-We obtain:
-
-| Residence-to-work pattern | ≤45 minutes | >45 minutes |
-|---|---:|---:|
-| Rural → Rural | 94.95% | 5.05% |
-| Rural → Urban | 71.09% | 28.91% |
-| Urban → Rural | 87.16% | 12.84% |
-| Urban → Urban | 89.13% | 10.87% |
-| **Total** | **89.64%** | **10.36%** |
-
-The contrast is now particularly easy to see. Around **5 percent** of rural-to-rural workers have commutes exceeding 45 minutes, compared with almost **29 percent** of rural-to-urban
-workers.
-
-This is information that we could not have obtained from the standard GLD variables alone.
-
-### 6.2. Estimate a simple model
-
-We can formalize the comparison using logistic regression.
-
-Because `work_mobility` is categorical, we use Stata's factor-variable notation:
-
-``` stata
-logistic long_commute ib1.work_mobility
-```
-
-The `i.` tells Stata to treat the variable as categorical, while `b1` selects category 1---`Rural -> Rural`---as the reference category.
-
-The estimated odds ratios are approximately:
-
-| Residence-to-work pattern | Odds ratio |
-|---|---:|
-| Rural → Rural | Reference |
-| Rural → Urban | 7.64 |
-| Urban → Rural | 2.77 |
-| Urban → Urban | 2.29 |
-
-For rural-to-urban workers, the odds ratio of 7.64 means that the
-**odds** of a commute exceeding 45 minutes are estimated to be 7.64
-times the odds for rural-to-rural workers.
-
-That is not the same as saying that rural-to-urban workers are "7.64
-times more likely" to have a long commute. Odds and probabilities are
-different quantities.
-
-The descriptive probabilities make the distinction concrete. In our
-data:
-
-``` text
-Rural -> Rural:   5.05% have a commute >45 minutes
-Rural -> Urban:  28.91% have a commute >45 minutes
-```
-
-For rural-to-rural workers, the odds are approximately:
-
-``` text
-0.0505 / (1 - 0.0505) = 0.053
-```
-
-For rural-to-urban workers:
-
-``` text
-0.2891 / (1 - 0.2891) = 0.407
-```
-
-and:
-
-``` text
-0.407 / 0.053 ≈ 7.64
-```
-
-So the model's 7.64 odds ratio corresponds here to an observed long-commute share rising from about **5% to 29%**. In probability terms, that is about **24 percentage points higher**, or roughly **5.7 times the probability**. The latter is a descriptive probability ratio, not the logistic-regression odds ratio.
-
-### 6.3. Add occupation
-
-So far, our analysis has used:
-
-``` text
-urban                Standard GLD variable
-work_location        Our extension
-commute_time         Our extension
-```
-
-We can now bring another standard harmonized variable back into the analysis. The GLD harmonization already provides `occup`, a one-digit occupational
-classification. This is where the benefit of extending an existing harmonization becomes especially clear. We do not need to go back to the original occupational codes, understand
-the classification, convert them to ISCO, and construct broad occupational groups. That work has already been done. We can simply estimate:
-
-``` stata
-logistic long_commute ib1.work_mobility i.occup
-```
-
-This asks whether differences across residence-to-work patterns remain after accounting for differences in occupational composition.
-
-The residence-to-work estimates become:
-
-| Residence-to-work pattern | Unadjusted OR | Occupation-adjusted OR |
-|---|---:|---:|
-| Rural → Rural | Reference | Reference |
-| Rural → Urban | 7.64 | 4.64 |
-| Urban → Rural | 2.77 | 2.35 |
-| Urban → Urban | 2.29 | 1.39 |
-
-The association becomes smaller after occupation is introduced. The change is particularly substantial for rural-to-urban and urban-to-urban workers.
-
-## 7. Conclusion
-
-Extending GLD does not mean reharmonizing the survey. The standard demographic and labour variables, classifications, identifiers, and weights remain available; the researcher concentrates on the additional information required for the research question.
-
-This exercise illustrated two forms of extension. First, we created transparent parallel variables when the analysis required an alternative definition of a concept already represented in GLD:
-
-``` text
-Standard GLD                  ICLS-13 extension
-lstatus             ->       lstatus_13
-empstat             ->       empstat_13
-industrycat10       ->       industrycat10_13
-occup               ->       occup_13
-```
-
-Second, we retained information outside the common GLD dictionary and combined it with the harmonized core:
-
-``` text
-s5c22 + GLD urban    ->       work_mobility
-s5c23                ->       commute_time and long_commute
-GLD occup            ->       occupation-adjusted analysis
-```
-
-A common dictionary makes comparison possible, but it cannot contain every useful question asked in every labour force survey. Starting from GLD allows researchers to preserve the standard harmonization, document their additions separately, and spend more time on the analysis for which the data were obtained.
+In [Block 4](../4%20-%20Analysis/Block_4_Analysis_Proposal.md), we describe commuting patterns and combine the new commuting variables with GLD's existing occupation classification.
