@@ -181,10 +181,10 @@ These checks cover the number of non-missing survey weights, the means of `weigh
 
 The accompanying [R script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R) and [Python script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py) run the complete harmonization from the same PBS microdata and three required lookup inputs. They retain the Stata Recreator's coding decisions and save separately named outputs, `_RECREATED_R.dta` and `_RECREATED_PYTHON.dta`, preserving the Stata reference output.
 
-Their public classification tables are supplied locally in `classification_universes`; execution does not fetch them from the network. See [running instructions](Docs/R-Python-Version/Recreator_R_Python_README.md).
+Their public classification tables are supplied locally in `classification_universes`; execution does not fetch them from the network. See [running instructions](Docs/R-Python-Version/README.md).
 
 ## 5. Carry Forward (5 Minutes)
 
 We have recovered a reproducible chain: **provider data + GLD code + auxiliary files + software dependencies -> harmonized output**. Open code makes this chain inspectable; access to microdata still follows the provider's terms. See the [GLD introduction](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/Introduction%20to%20the%20GLD.html) for the broader principles.
 
-In [the next exercise](../3%20-%20Expand/Block_3_Extending_the_GLD.md), we retain the standard harmonization and create a separate research version. Keep your corrected do-file and a record of the inputs and their locations: the next step is to extend this chain, not start from scratch. You can continue in the same working folder; the links between handouts describe the workshop materials, not a required layout on your computer.
+In [the next exercise](Block_3_Expanding_the_GLD.md), we retain the standard harmonization and create a separate research version. Keep your corrected do-file and a record of the inputs and their locations: the next step is to extend this chain, not start from scratch. You can continue in the same working folder; the links between handouts describe the workshop materials, not a required layout on your computer.
