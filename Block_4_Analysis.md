@@ -129,13 +129,32 @@ foreach score in aioe_all complementarity_theta c_aioe {
 	replace `score' = "" if `score' == "NA"
 	destring `score', replace
 }
+
 tempfile ai_scores
 save `ai_scores'
 restore
 
 confirm string variable occup_isco
 assert isco_version == "isco_2008" if !missing(occup_isco)
-merge m:1 occup_isco using `ai_scores', keep(master match) generate(ai_merge)
+merge m:1 occup_isco using `ai_scores'
+
+* We should see all three merge options:
+
+* Codes from the AI scores data matched (_merge == 3)
+
+* Rows that were not matched. These are people without ISCO codes, 
+* most of them should not be employed (_merge == 1)
+
+* Codes that AI scores (comprehensive of ISCO code universe)
+* has, but are not present in the data.
+* For example no codes 2422 "Policy administration professionals"
+* were interviewed in 2024 in Pakistan - quite a pity!
+
+* Checking answers that had no match (all should be unemployed, NLF or kids)
+tab lstatus if _merge == 1,m
+
+* Drop _merge variable
+drop _merge
 ```
 
 The lookup must have only one row per key. `keep(master match)` retains every survey observation but excludes occupations found only in the lookup. The CSV's `NA` tokens become missing numeric values, not zero scores.
