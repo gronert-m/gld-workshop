@@ -14,11 +14,15 @@ Choose a **working folder** for your attempt and use your chosen layout througho
 2. Download the **2024-25 Stata microdata** directly from PBS as `LFS-2024-25-STATA.zip`, and extract it. Keep the archive as your original download. We work with the extracted dataset, not the ZIP archive.
 3. Download the [GLD harmonization do-file](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do). Use GitHub's **Download raw file** control, or open **Raw** and download the text. Do not save the GitHub HTML page as a do-file. You may also open the raw file, use Ctr+A to select all and copy-paste.
 
-### How to participate without installing software
+### How to participate without installing software / using Stata
 
 Everyone can locate the PBS download, inspect the public do-file, predict which dependency is missing, and interpret the verification checks. Participants obtain respondent microdata directly from PBS; the workshop does not distribute a copy. Begin the download early and continue with the code walkthrough while it finishes.
 
 Execution is optional during the session. Participants with a suitable environment can run the exercise or work in pairs. The facilitator can use an available Stata installation, or a prepared R/Python browser environment with dependencies installed. If download or runtime setup stalls, continue with the displayed errors and aggregate verification results; finish the full run using the supplied scripts after the workshop. No participant installation is required to follow the session.
+
+For execution without Stata, the accompanying [R script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R) and [Python script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py) run the complete harmonization from the same PBS microdata and three required lookup inputs. They retain the Stata Recreator's coding decisions and save separately named outputs, `_RECREATED_R.dta` and `_RECREATED_PYTHON.dta`, preserving the Stata reference output.
+
+Their public classification tables are supplied locally in `classification_universes`; execution does not fetch them from the network. See [running instructions](Docs/R-Python-Version/README.md) for the required R or Python environment and packages.
 
 ### Software check for an executing environment
 
@@ -176,12 +180,6 @@ display as result "All reproduction checks passed."
 ```
 
 These checks cover the number of non-missing survey weights, the means of `weight` and `lstatus`, and the absence of labour-status values below age 9. If an assertion fails, inspect the input release, code version, and preceding Stata output before changing the harmonization.
-
-### R and Python reproductions
-
-The accompanying [R script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R) and [Python script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py) run the complete harmonization from the same PBS microdata and three required lookup inputs. They retain the Stata Recreator's coding decisions and save separately named outputs, `_RECREATED_R.dta` and `_RECREATED_PYTHON.dta`, preserving the Stata reference output.
-
-Their public classification tables are supplied locally in `classification_universes`; execution does not fetch them from the network. See [running instructions](Docs/R-Python-Version/README.md).
 
 ## 5. Carry Forward (5 Minutes)
 
