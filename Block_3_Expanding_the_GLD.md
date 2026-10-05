@@ -1,8 +1,8 @@
-# Block 3: Extending the GLD
+# Block 3: Expanding the GLD
 
-**Pakistan LFS 2024-25 | Proposed duration: 35 minutes | Construct and check both extensions**
+**Pakistan LFS 2024-25 | Proposed duration: 35 minutes | Construct and check both additions**
 
-This block produces the research dataset and evaluates the effect of changing the ICLS definition. [Block 4](../4%20-%20Analysis/Block_4_Analysis_Proposal.md) uses the saved dataset to study commuting. Participants following the demonstration can inspect the questionnaire, predict the recodes, and identify which variables must survive the final `keep` command.
+This block adds variables, evaluates the effect of changing the ICLS definition, and produces the research dataset [Block 4](Block_4_Analysis.md) uses to study commuting and link external AI occupation scores. 
 
 ## 1. Introduction
 
@@ -16,7 +16,7 @@ A harmonized dataset gives us a standardized analytical core. Variables such as 
 
 A researcher may only need to understand a small part of the original questionnaire and add a few variables relevant to the particular research question. This can substantially reduce the time between obtaining a survey and beginning substantive analysis.
 
-In this exercise, we use the **Pakistan Labour Force Survey (LFS) 2024** to examine two different ways in which researchers may want to extend a GLD harmonization:
+In this exercise, we use the **Pakistan Labour Force Survey (LFS) 2024** to examine two different ways in which researchers may want to expand a GLD harmonization:
 
 1.  **Creating an alternative version of a concept that already exists in the GLD dictionary.**\
     We reconstruct labour-market variables using an alternative ICLS definition.
@@ -24,7 +24,7 @@ In this exercise, we use the **Pakistan Labour Force Survey (LFS) 2024** to exam
 2.  **Adding information that is not included in the standard GLD dictionary.**\
     We add information about workplace location and commuting time and use it to construct new analytical variables.
 
-These are different kinds of extensions, but the principle is the same:
+These are different ways to expand the GLD, but the principle is the same:
 
 > **Start from the harmonized data and concentrate additional harmonization effort on the information required for your research question.**
 
@@ -35,7 +35,7 @@ We begin where the previous workshop block ended.
 We already have:
 
 -   the original Pakistan LFS data;
--   the questionnaire and supporting documentation;
+-   the [questionnaire](Docs/Questionnaire-of-LFS-2024-25-Final.pdf) and [supporting documentation](https://github.com/worldbank/gld/tree/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS);
 -   the GLD harmonization do-file; and
 -   the harmonized GLD dataset produced by that do-file.
 
@@ -54,11 +54,11 @@ The existing program has already done substantial work for us. For example, it h
 
 Our task is to identify what additional information our research requires.
 
-### Run the harmonization with extensions
+### Run the harmonization with additions
 
 Continue with the working folder or folder layout you chose in Block 2. There is no requirement to create a new folder for this block. Feel free to do so if that is your preference.
 
-Download [Build the extended dataset](PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do), a copy of the harmonization from Block 2 with Section 8A added, to your chosen script location. It reads the original survey and lookup inputs from Block 2 and saves a separate `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta` dataset.
+Download [Build the expanded dataset](PAK_2024_LFS_V01_M_V01_A_GLD_ALL_EXPANDER.do), a copy of the harmonization from Block 2 with Section 8A added, to your chosen script location. It reads the original survey and lookup inputs from Block 2 and saves a separate `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta` dataset.
 
 Before running it, replace its Section 1.2 path settings with your own locations, as shown in Section 3 below. The supplied file's paths are examples from the workshop author's setup, not required folders. Then run your edited copy, using its actual location; for a single-folder layout this could be:
 
@@ -70,12 +70,12 @@ Run the file in full so its local macros remain in scope. For participants execu
 
 ------------------------------------------------------------------------
 
-## 3. Where should extensions go?
+## 3. Where should additions go?
 
-The GLD harmonization template separates the work into stages. For a research-specific extension, there are three places to think about:
+The GLD harmonization template separates the work into stages. For a research-specific expansion, there are three places to think about:
 
 1.  **Section 1.2 --- directories and output name:** rename the output so the Block 2 file is not overwritten.
-2.  **Section 8A --- user-defined extensions:** create the additional variables after creating the standard ones.
+2.  **Section 8A --- user-defined additions:** create the additional variables after creating the standard ones.
 3.  **Section 9 --- final steps:** add the new variables to the final `keep` list.
 
 The GLD template defines the standard output in Section 1.2 as an `_ALL.dta` file. For our research version, we create a separate `_EXPANDED.dta` output. For example:
@@ -104,7 +104,7 @@ After the standard harmonization has created its variables (last block to create
 }
 
 /*%%=============================================================================================
-    8A: User-defined extensions
+    8A: User-defined additions
 =============================================================================================%%*/
 
     [YOUR CONTENT TO BE ADDED HERE]
@@ -135,10 +135,10 @@ and save it to as the new expansion file. Conceptually, the workflow is therefor
     Sections 2–8: standard GLD harmonization
             |
             v
-    Section 8A: user-defined extensions
+    Section 8A: user-defined additions
             |
             v
-    Section 9: keep standard + extension variables and save the expanded output
+    Section 9: keep standard + added variables and save the expanded output
             |
             v
     Research analysis
@@ -146,7 +146,7 @@ and save it to as the new expansion file. Conceptually, the workflow is therefor
 
 The important distinction is that `_ALL` remains the standard GLD product. `_EXPANDED` (or other) is our research-specific version built from the same harmonization.
 
-## 4. Add the extension variables
+## 4. Add the new variables
 
 We create both sets of additions in Section 8A before examining either one: parallel labour variables under ICLS-13, and variables describing workplace location and commuting.
 
@@ -219,7 +219,7 @@ label values occup_13 lbloccup
 
 ### 4.2. Add the commuting variables
 
-Our second extension adds information that is not part of the standard GLD dictionary. The questionnaire records workplace location in `s5c22` and commuting time in `s5c23`. We retain those two variables and derive two analytical variables by combining them with the existing GLD variable `urban`.
+Our second addition brings in information that is not part of the standard GLD dictionary. The questionnaire records workplace location in `s5c22` and commuting time in `s5c23`. We retain those two variables and derive two analytical variables by combining them with the existing GLD variable `urban`.
 
 ``` stata
 * Assert ranges are correct
@@ -261,7 +261,7 @@ label var long_commute "Commute time greater than 45 minutes"
 
 `work_location` and `commute_time` retain the questionnaire categories. `work_mobility` distinguishes rural-to-rural, rural-to-urban, urban-to-rural, and urban-to-urban workers. `long_commute` identifies commutes exceeding 45 minutes.
 
-### 4.3. Retain the extension variables
+### 4.3. Retain the added variables
 
 At the end of Section 8A, collect all ten additions in a local macro:
 
@@ -297,7 +297,7 @@ confirm variable extra_icls_13_emp lstatus_13 empstat_13 ocusec_13 ///
 
 We now have the standard variables and their alternative ICLS-13 counterparts:
 
-| Standard GLD | ICLS-13 extension |
+| Standard GLD | ICLS-13 alternative |
 | --- | --- |
 | `lstatus` | `lstatus_13` |
 | `empstat` | `empstat_13` |
@@ -349,13 +349,13 @@ assert abs(empstat_ag_freq[4,1] - 9876372.7) < 1
 assert abs(empstat_13_ag_freq[4,1] - 12086779.3) < 1
 ```
 
-An assertion passes silently and stops with an error if the expected result does not match. If it fails, inspect the inputs and extension code before changing the expected values.
+An assertion passes silently and stops with an error if the expected result does not match. If it fails, inspect the inputs and expansion code before changing the expected values.
 
 > A harmonized variable is not only a variable name and coding scheme. Its underlying statistical definition matters as well. When a research question requires another definition, we can construct a transparent parallel version without reharmonizing the rest of the survey.
 
 ## 6. Carry forward to analysis
 
-We have made two extensions within the same harmonization workflow. One creates a transparent alternative definition; the other retains survey information outside the common dictionary and combines it with the standard GLD core.
+We have made two additions within the same harmonization workflow. One creates a transparent alternative definition; the other retains survey information outside the common dictionary and combines it with the standard GLD core.
 
 ```text
 Original survey + existing GLD harmonization code
@@ -363,9 +363,9 @@ Original survey + existing GLD harmonization code
     -> Section 8A: parallel ICLS variables + commuting variables
     -> Section 9: retain both sets and save _EXPANDED.dta
     -> Check saved variables and evaluate the ICLS results
-    -> Block 4: analyse commuting
+    -> Block 4: analyse commuting and link external AI occupation scores
 ```
 
 The demographic variables, classifications, identifiers, and weights remain available. We can now concentrate on research questions without rebuilding their construction. Keep the expanded dataset, the modified program, and a record of their locations so the additional decisions remain reproducible. Block 4 can use this output directly from wherever you saved it.
 
-In [Block 4](../4%20-%20Analysis/Block_4_Analysis_Proposal.md), we describe commuting patterns and combine the new commuting variables with GLD's existing occupation classification.
+In [Block 4](Block_4_Analysis.md), we describe commuting patterns with and without the existing occupation variable `occup`. We then use the harmonized code `occup_isco` to link external AI scores and compare worker groups using GLD's education, sex, and weight variables.
