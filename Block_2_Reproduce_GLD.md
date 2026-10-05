@@ -2,7 +2,7 @@
 
 **Pakistan Labour Force Survey 2024-25 | Proposed duration: 35 minutes | Guided reproduction, with optional execution**
 
-The introductory session described GLD's approach: the harmonized dataset is accompanied by the code and survey-specific documentation needed to inspect, reproduce, and extend it. Here we put that approach to work. We will start with the published code and the original survey, diagnose two file-dependency problems, and produce a harmonized dataset.
+The introductory session described GLD's approach: the harmonized dataset is accompanied by the code and survey-specific documentation needed to inspect, reproduce, and expand it. Here we put that approach to work. We will start with the published code and the original survey, diagnose two file-dependency problems, and produce a harmonized dataset.
 
 The survey covers 2024-25; its GLD identifier uses the starting year, `PAK_2024_LFS`. We are reproducing the standard variables, not yet changing their definitions.
 
@@ -63,7 +63,7 @@ local out_file "`level_2_harm'_RECREATED.dta"
 
 Use an existing, writable folder. Forward slashes work in Stata on Windows, and the quotation marks protect paths containing spaces. The version locals also populate metadata in the output, so retain them.
 
-Run the **whole do-file**, not just a selection. Local macros must be defined within the execution that uses them. At this stage, leave Section 1.3 unchanged.
+Run the **whole do-file**, not just a selection. Local macros must be defined within the execution that uses them. Save your corrected do-file in your chosen working location and keep it with the inputs. You will use this same program as the starting point for Block 3. At this stage, leave Section 1.3 unchanged.
 
 ### Pause: What Stopped the Run?
 
@@ -187,4 +187,4 @@ Their public classification tables are supplied locally in `classification_unive
 
 We have recovered a reproducible chain: **provider data + GLD code + auxiliary files + software dependencies -> harmonized output**. Open code makes this chain inspectable; access to microdata still follows the provider's terms. See the [GLD introduction](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/Introduction%20to%20the%20GLD.html) for the broader principles.
 
-In [the next exercise](Block_3_Expanding_the_GLD.md), we retain the standard harmonization and create a separate research version. Keep your corrected do-file and a record of the inputs and their locations: the next step is to extend this chain, not start from scratch. You can continue in the same working folder; the links between handouts describe the workshop materials, not a required layout on your computer.
+In [the next exercise](Block_3_Expanding_the_GLD.md), we will build on the reproduction to add variables by changing concepts and including new ones from the questionnaire.
