@@ -21,6 +21,7 @@ Across countries and years:
 * response categories differ;
 * national classifications differ;
 * international standards change;
+* ------------------------------
 * concepts that appear similar may not mean exactly the same thing; and
 * information useful for understanding these differences is spread across questionnaires, reports, data files, and other documentation.
 
@@ -68,8 +69,9 @@ The platform intends to answer questions such as:
 * Which surveys and years have been harmonized?
 * Is `occup_isco` available in the surveys I want to use?
 * Which countries contain a particular variable?
+* Download the selection of survey coverage (not microdata) as a spreadsheet
 
-The platform includes surveys brought in from other harmonizations of the World Bank. These are not present in the GLD Repository. An alternative is to ask AI to read the repository and answer the questions - AI works best with well documented infrastructure.
+The platform includes surveys brought in from other harmonizations of the World Bank. These are not present in the GLD Repository. An alternative is to ask AI to read the repository and answer the questions like: "how many PAK surveys are there and which years?" - AI works best with well documented infrastructure.
 
 We will instead spend our workshop time understanding what those variables mean and how to trace their construction.
 
@@ -94,15 +96,9 @@ This matters especially when concepts or classifications change over time.
 
 A survey collected under an older standard is not retrospectively treated as though respondents had answered a questionnaire designed under a newer standard. Instead, GLD records the relevant context and lets researchers decide how they want to handle differences across surveys.
 
-### 2.2 We aim to preserve, standardize, and derive
+### 2.2 Special concepts require to preserve, standardize, and derive
 
-A useful way to understand GLD variables is:
-
-```text
-PRESERVE  ->  STANDARDIZE  ->  DERIVE
-```
-
-Where possible, GLD retains information close to what was provided in the original survey, converts it to an internationally comparable standard, and then derives convenient analytical variables.
+For certain key concepts, GLD retains information close to what was provided in the original survey, converts it to an internationally comparable standard, and then derives convenient analytical variables.
 
 We will see this particularly clearly with occupation:
 
@@ -134,7 +130,7 @@ You do not need to memorize the GLD repository structure or its naming conventio
 
 You should instead leave this workshop knowing **where to look when you need to understand something**.
 
-### 3.1 Start with the GLD Manual
+### 3.1 Start with the GLD Manual (on [website](https://worldbank.github.io/gld/))
 
 The public [GLD documentation is organized as a website](https://worldbank.github.io/gld/README.html).
 
@@ -143,11 +139,11 @@ Three parts are particularly useful:
 **Introduction to the GLD**  
 What GLD is, why it exists, and its guiding principles.
 
-**GLD data dictionary**  
-What each harmonized variable means and how it should be coded.
-
-**GLD harmonization methodology**  
+**[GLD harmonization methodology](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/GLD%20harmonization%20methodology.html)**  
 How the harmonization is organized and the principles used when translating source surveys into the GLD dictionary.
+
+**[GLD data dictionary](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/GLD%20data%20dictionary.html)**  
+What each harmonized variable means and how it should be coded.
 
 If six months from now you encounter a GLD convention that you do not remember from this workshop, the objective is not to remember the answer. It is to know how to find it here.
 
@@ -236,10 +232,10 @@ educat7
 
 Work through the following questions.
 
-1. Find `educat7` in the GLD data dictionary. What concept does it represent?
+1. Find `educat7` in the GLD Manual's data dictionary section. What concept does it represent?
 2. Which block of the dictionary does it belong to?
 3. Find `educat7` in the Pakistan harmonization program.
-4. Which original survey variables are used to construct it?
+4. Which original survey variable(s) is(are) used to construct it?
 5. Does the harmonization simply rename an existing variable, or does it make additional coding decisions?
 
 You are not expected to understand every education code in the Pakistan survey. The objective is to learn the route:
@@ -293,13 +289,12 @@ Rather than touring the complete data dictionary, these examples illustrate diff
 
 We will follow:
 
-```text
-icls_v
-urban
-lstatus
-occup_orig
-occup_isco
-occup
+* [`icls_v`](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do#L145)
+* [`urban`](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do#L295)
+* [`lstatus`](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do#L854)
+* [`occup_orig`](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do#L1048)
+* [`occup_isco`](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do#L1056)
+* [`occup`](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do#L1077)
 ```
 
 ### 5.1 `icls_v`: record the conceptual context
@@ -384,6 +379,7 @@ replace lstatus = 1 if s5c4 == 1 & (s5c6 == 1 | s5c7 == 1) ///
 * Farming/livestock/fishing mainly or only for sale
 replace lstatus = 1 ///
     if inrange(s5c9, 1, 3) ///
+    * The key bit here - only all sold (1) or mostly sold (2)
     & inrange(s5c10, 1, 2) ///
     & missing(lstatus)
 
@@ -411,11 +407,11 @@ survey skip patterns
 harmonization decisions
 ```
 
-This is also why GLD makes the code and [Country Survey Details available alongside the harmonized data](https://github.com/worldbank/gld/blob/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS/Labor_Status_and_Labor_Force_Participation.md).
+To document these decision points and choices the GLD Team makes the code and [Country Survey Details available alongside the harmonized data](https://github.com/worldbank/gld/blob/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS/Labor_Status_and_Labor_Force_Participation.md).
 
 ### 5.4 Occupation: preserve -> standardize -> derive
 
-Occupation gives us a useful example of the full chain introduced earlier.
+Occupation gives us a useful example of the chain introduced earlier.
 
 #### Step 1: `occup_orig` — preserve
 
@@ -536,6 +532,9 @@ You should instead be able to answer five practical questions:
 
 5. **What do I do when GLD does not contain exactly what my research requires?**  
    Trace the existing harmonization back to its source information and build from it rather than starting again from zero.
+
+6. **Raise an issue if you see something**
+   You can [raise an issue on GitHub](https://github.com/worldbank/gld/issues) if you see a mistake or have any other information you think we should address.
 
 So far we have only **read** the chain:
 
