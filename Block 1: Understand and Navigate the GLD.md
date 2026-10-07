@@ -533,7 +533,7 @@ You should instead be able to answer six practical questions:
 5. **What do I do when GLD does not contain exactly what my research requires?**  
    Trace the existing harmonization back to its source information and build from it rather than starting again from zero.
 
-6. **What do I do if I see something wrong**
+6. **What do I do if I see something wrong?**
    You can [raise an issue on GitHub](https://github.com/worldbank/gld/issues) if you see a mistake or have any other information you think we should address.
 
 So far we have only **read** the chain:
