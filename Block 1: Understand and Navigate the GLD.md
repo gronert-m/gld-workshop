@@ -516,7 +516,7 @@ That is the broader GLD philosophy in one example.
 
 At this point, you should not know the entire GLD data dictionary or remember every repository convention.
 
-You should instead be able to answer five practical questions:
+You should instead be able to answer six practical questions:
 
 1. **What is GLD?**  
    A common harmonization of labor-market survey microdata, accompanied by the code and documentation needed to understand and build on it.
@@ -533,7 +533,7 @@ You should instead be able to answer five practical questions:
 5. **What do I do when GLD does not contain exactly what my research requires?**  
    Trace the existing harmonization back to its source information and build from it rather than starting again from zero.
 
-6. **Raise an issue if you see something**
+6. **What do I do if I see something wrong**
    You can [raise an issue on GitHub](https://github.com/worldbank/gld/issues) if you see a mistake or have any other information you think we should address.
 
 So far we have only **read** the chain:
