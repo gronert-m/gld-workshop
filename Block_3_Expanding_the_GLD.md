@@ -34,9 +34,9 @@ We begin where the previous workshop block ended.
 
 We already have:
 
--   the original Pakistan LFS data;
+-   the original Pakistan LFS data and dependencies;
 -   the [questionnaire](Docs/Questionnaire-of-LFS-2024-25-Final.pdf) and [supporting documentation](https://github.com/worldbank/gld/tree/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS);
--   your corrected harmonization do-file from Block 2; and
+-   your harmonization do-file from Block 2; and
 -   the standard harmonized GLD dataset you saved locally with that do-file.
 
 We do **not** need to write the harmonization again. We will add code to a copy of your working program and rerun it from the original survey inputs. We are not adding variables directly to the saved Block 2 dataset, because the new variables use source questions that the standard output does not retain.
@@ -58,29 +58,17 @@ Our task is to identify what additional information our research requires.
 
 Continue with the working folder or folder layout you chose in Block 2. There is no requirement to create a new folder for this block. Feel free to do so if that is your preference.
 
-Use **Save As** on the corrected Block 2 program to make a second copy, for example `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDER.do`. Keep your Block 2 version unchanged so it still reproduces the standard harmonization. You will add the Block 3 variables to this copy.
-
-Your copy already contains your corrected input filename, path settings, and other repairs from Block 2. Keep them. Work through Sections 3 and 4 below to change the output name and add the research variables before running the program.
-
-The inputs and software dependencies remain those used in [Block 2](../2%20-%20Recreate/Block_2_Reproduce_GLD.md), including internet access for classification validation. No new harmonization do-file is needed.
-
-------------------------------------------------------------------------
+You can either use a copy of your harmonization code (to keep incremental versions) or continue with the same code (recommend the latter, for simplicity). The inputs and software dependencies remain those used in [Block 2](Block_2_Reproduce_GLD.md).
 
 ## 3. Where should additions go?
 
 The GLD harmonization template separates the work into stages. For a research-specific expansion, there are three places to think about:
 
-1.  **Section 1.2 --- directories and output name:** in your copied Block 2 program, change the output name so the Block 2 file is not overwritten.
-2.  **Section 8A --- user-defined additions:** create the additional variables after creating the standard ones.
+1.  **Section 1.2 --- directories and output name:** in your copied Block 2 program, change the output name if you don't wish to verwrite the file.
+2.  **Section 8A --- user-defined additions:** create this section to host the additional variables after creating the standard ones.
 3.  **Section 9 --- final steps:** add the new variables to the final `keep` list.
 
-In Block 2, you set the output name to `_RECREATED.dta`. In Section 1.2 of your copied program, replace only the `out_file` definition with:
-
-``` stata
-local out_file "`level_2_harm'_EXPANDED.dta"
-```
-
-Retain all the path and metadata locals you defined in Block 2, including `level_2_harm`. The new filename will be `PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta`, saved in your existing `path_output` folder. You may choose a different existing, writable output folder if you prefer, but there is no need to change the input paths. The distinct filename preserves your `_RECREATED.dta` output. Rerunning the expanded program replaces its expanded output and regenerates the migration lookup in the input folder, just as in Block 2.
+In Section 1.2. retain all the path and metadata locals you defined in Block 2, including `level_2_harm`.
 
 Next, insert a new Section 8A between the end of Section 8 and the start of Section 9 in your copied program. Leave the existing Section 8 code intact. The outline below shows the insertion point; the bracketed text is a placeholder, not executable Stata code:
 
@@ -99,7 +87,7 @@ Next, insert a new Section 8A between the end of Section 8 and the start of Sect
     8A: User-defined additions
 =============================================================================================%%*/
 
-    [YOUR CONTENT TO BE ADDED HERE]
+    [ADDITIONAL CONTENT TO BE INSERTED HERE]
 
 /*%%=============================================================================================
 	9: Final steps
@@ -115,10 +103,10 @@ Finally, Section 9 explicitly controls the variables retained in the output. You
     Original survey files
             |
             v
-    Section 1.2: retain your paths and change the output name
+    Section 1.2: retain your paths (and change the output name)
             |
             v
-    Sections 2–8: standard GLD harmonization
+    Sections 2–8: standard GLD harmonization (Note: plug in wholesale if harmonization updated)
             |
             v
     Section 8A: user-defined additions
@@ -130,11 +118,9 @@ Finally, Section 9 explicitly controls the variables retained in the output. You
     Research analysis
 ```
 
-Your Block 2 program and `_RECREATED.dta` output remain the standard reproduction. The copied program and `_EXPANDED.dta` output are your research-specific version built from that same harmonization.
-
 ## 4. Add the new variables
 
-Insert the construction code from Sections 4.1 and 4.2 into your new Section 8A, in the order shown. We create both sets of additions before examining either one: parallel labour variables under ICLS-13, and variables describing workplace location and commuting.
+Insert the construction code from Sections 4.1 (ICLS alternative) and 4.2 (commute vars) shown below into your new Section 8A, in the order shown.
 
 The 2024 Pakistan LFS implements the newer ICLS framework. Under ICLS-19, own-use production is separated from employment for pay or profit. This changes the treatment of people engaged in farming, livestock rearing, or fishing mainly or only for family use.
 
@@ -145,10 +131,6 @@ The standard harmonized variable `lstatus` is coded as the survey intends. That 
 We first identify own-use agricultural producers who are not employed under the ICLS-19 construction but would be treated as employed under ICLS-13. Add the following code at the start of Section 8A in your copied program.
 
 ``` stata
-* ------------------------------------------------------------------
-* ICLS 13th BRIDGE CODE — PAK LFS 2024
-* ------------------------------------------------------------------
-
     * ------------------------------------------------------------------
     * 1. Identify respondents employed under ICLS-13 but not ICLS-19
     * ------------------------------------------------------------------
@@ -268,15 +250,9 @@ quietly {
 }
 ```
 
-This ensures that the new variables survive the final variable selection. Keep the existing final save command: it uses the output name you changed in Section 1.2.
+This ensures that the new variables survive the final variable selection. Keep the existing final save command: it uses the output name defined in Section 1.2.
 
-Save your edits, then run the **whole copied do-file**, not just Section 8A, so the local macros remain in scope. Use your actual script location and filename; for the example name in Section 2:
-
-```stata
-do "C:/your/path/gld_workshop/PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDER.do"
-```
-
-The program reads your original inputs, reruns the standard harmonization, constructs the additions, and saves the expanded dataset in your chosen output folder.
+Save your edits, then run the **whole do-file**, not just Section 8A, so the local macros remain in scope. The program reads your original inputs, reruns the standard harmonization, constructs the additions, and saves the expanded dataset in your chosen output folder.
 
 ## 5. Check the saved file and evaluate the ICLS results
 
@@ -284,7 +260,7 @@ Open the file saved at the end of Section 4 and confirm that all ten added varia
 
 ```stata
 local path_output "C:/your/path/gld_workshop"
-use "`path_output'/PAK_2024_LFS_V01_M_V01_A_GLD_EXPANDED.dta", clear
+use "`path_output'/[Your file with the additional variables as dta]", clear
 confirm variable extra_icls_13_emp lstatus_13 empstat_13 ocusec_13 ///
     industrycat10_13 occup_13 work_location commute_time work_mobility long_commute
 ```
@@ -310,8 +286,6 @@ The standard variables remain untouched. The `_13` variables make the alternativ
 | Share of paid employees among all workers | 42.50% | 43.75% |
 
 Including own-use agricultural producers as employed raises labour force participation and agriculture's share of employment. The unemployment rate falls as the labour force denominator grows. Paid-employee shares fall because the additional workers are classified as self-employed. These differences follow the definition and the assigned characteristics discussed in Section 4.1; they are not interchangeable estimates of an unchanged concept.
-
-Labour force participation uses respondents with valid labour status as its denominator; unemployment uses the labour force; agricultural employment and paid-employee shares use the relevant employed group. These are weighted point estimates, not survey-design-adjusted uncertainty estimates.
 
 Run the following code together to check key weighted totals underlying the comparison against the expected results for this release. The category assertions ensure that the matrix entries refer to the intended groups; the totals are checked within one weighted person to allow for rounding. These checks support the comparison but do not independently test every percentage in the table.
 
