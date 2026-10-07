@@ -136,7 +136,7 @@ The public [GLD documentation is organized as a website](https://worldbank.githu
 
 Three parts are particularly useful:
 
-**Introduction to the GLD**  
+**[Introduction to the GLD](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/Introduction%20to%20the%20GLD.html)**  
 What GLD is, why it exists, and its guiding principles.
 
 **[GLD harmonization methodology](https://worldbank.github.io/gld/Support/A%20-%20Guides%20and%20Documentation/GLD%20Manual%20Files/GLD%20harmonization%20methodology.html)**  
