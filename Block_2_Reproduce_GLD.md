@@ -1,6 +1,6 @@
 # Block 2: Reproduce a GLD Harmonization
 
-**Pakistan Labour Force Survey 2024-25 | Proposed duration: 35 minutes | Guided reproduction, with optional execution**
+**Pakistan Labour Force Survey 2024-25 | Proposed duration: 35 minutes | Guided reproduction**
 
 The introductory session described GLD's approach: the harmonized dataset is accompanied by the code and survey-specific documentation needed to inspect, reproduce, and expand it. Here we put that approach to work. We will start with the published code and the original survey, diagnose two file-dependency problems, and produce a harmonized dataset.
 
@@ -8,21 +8,19 @@ The survey covers 2024-25; its GLD identifier uses the starting year, `PAK_2024_
 
 ## 1. Locate and Obtain the Inputs (7 Minutes)
 
-Choose a **working folder** for your attempt and use your chosen layout throughout Blocks 2-4. A single folder such as `gld_workshop` can hold all scripts, inputs, and outputs; separate folders are equally valid. Neither the name `Examples` nor the numbered folders used to organize these handouts is required. The paths below are placeholders: replace them with your own locations. Use a new folder or keep backup copies of any files you do not want overwritten.
+Choose a **working folder** for your attempt and use your chosen layout throughout Blocks 2-4. A single folder such as `gld_workshop` can hold all scripts, inputs, and outputs; separate folders are equally valid. Use a new folder or keep backup copies of any files you do not want overwritten.
 
 1. Open the [Pakistan LFS country-survey documentation](https://github.com/worldbank/gld/blob/main/Support/B%20-%20Country%20Survey%20Details/PAK/LFS/1.%20Introduction%20to%20Pakistan%20LFS.md#where-can-the-data-be-found). Follow its data-access link to the [Pakistan Bureau of Statistics labour force statistics page](https://www.pbs.gov.pk/labour-force-statistics).
 2. Download the **2024-25 Stata microdata** directly from PBS as `LFS-2024-25-STATA.zip`, and extract it. Keep the archive as your original download. We work with the extracted dataset, not the ZIP archive.
-3. Download the [GLD harmonization do-file](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do). Use GitHub's **Download raw file** control, or open **Raw** and download the text. Do not save the GitHub HTML page as a do-file. You may also open the raw file, use Ctr+A to select all and copy-paste.
+3. Download the [GLD harmonization do-file](https://github.com/worldbank/gld/blob/main/GLD/PAK/PAK_2024_LFS/PAK_2024_LFS_V01_M_V01/Programs/PAK_2024_LFS_V01_M_V01_A_GLD_ALL.do). Use GitHub's **Download raw file** control, or open **Raw** and download the text. Do not save the GitHub HTML page as a do-file. You may also open the raw file, use Ctr+A (in Windows) to select all and copy-paste.
 
 ### How to participate without installing software / using Stata
 
-Everyone can locate the PBS download, inspect the public do-file, predict which dependency is missing, and interpret the verification checks. Participants obtain respondent microdata directly from PBS; the workshop does not distribute a copy. Begin the download early and continue with the code walkthrough while it finishes.
+Everyone can locate the PBS download, inspect the public do-file, predict which dependency is missing, and interpret the verification checks. You obtain survey microdata directly from PBS; the workshop does not distribute a copy. Begin the download early and continue with the code walkthrough while it finishes.
 
-Execution is optional during the session. Participants with a suitable environment can run the exercise or work in pairs. The facilitator can use an available Stata installation, or a prepared R/Python browser environment with dependencies installed. If download or runtime setup stalls, continue with the displayed errors and aggregate verification results; finish the full run using the supplied scripts after the workshop. No participant installation is required to follow the session.
+Execution is advised yet optional during the session. Participants with a suitable environment can run the exercise or work in pairs. You can use an available Stata installation, or a prepared R/Python browser environment with dependencies installed. If download or runtime setup stalls, continue with the displayed errors and aggregate verification results; finish the full run using the supplied scripts after the workshop. No participant installation is required to follow the session.
 
-For execution without Stata, the accompanying [R script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R) and [Python script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py) run the complete harmonization from the same PBS microdata and three required lookup inputs. They retain the Stata Recreator's coding decisions and save separately named outputs, `_RECREATED_R.dta` and `_RECREATED_PYTHON.dta`, preserving the Stata reference output.
-
-Their public classification tables are supplied locally in `classification_universes`; execution does not fetch them from the network. See [running instructions](Docs/R-Python-Version/README.md) for the required R or Python environment and packages.
+For execution without Stata, the accompanying [R script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R) and [Python script](Docs/R-Python-Version/PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py) run the complete harmonization from the same PBS microdata and any required lookup inputs. They retain the Stata code's decisions and save separately named outputs, `_RECREATED_R.dta` and `_RECREATED_PYTHON.dta`, preserving the Stata reference output. See the [running instructions](Docs/R-Python-Version/README.md) for the required R or Python environment and packages.
 
 ### Software check for an executing environment
 
@@ -45,7 +43,7 @@ if _rc {
 
 ## 2. Set Paths and Run (8 Minutes)
 
-Open your downloaded do-file. In **Section 1.2**, replace the directory-setup block with the following, changing the first path to your working folder. This example puts inputs and outputs together; if you keep them separately, set each path local to the appropriate folder. This makes the workshop independent of the GLD team's internal directory structure and explicitly defines the output filename.
+Open your downloaded do-file. In **Section 1.2**, replace the directory-setup block with the following, changing the first path to your working folder. This example puts inputs and outputs together (in the same folder); if you keep them separately, set each path local to the appropriate folder. This makes the workshop independent of the GLD team's internal directory structure and explicitly defines the output filename.
 
 ```stata
 local path_in_stata "C:/your/path/gld_workshop"
@@ -148,7 +146,7 @@ gld_workshop/
     PAK_training_code.dta
 ```
 
-Rerun the whole program. It creates the 2024 migration lookup in `path_in_stata` and, on successful completion, the `_RECREATED.dta` output in `path_output`. Both locations must be writable. Its `save, replace` statements overwrite files with those names, so protect any existing copies you need to retain.
+Rerun the whole program. It creates the 2024 migration lookup in `path_in_stata` and, on successful completion, the recreated `.dta` output in `path_output`. Its `save, replace` statements overwrite files with those names, so protect any existing copies you need to retain.
 
 </details>
 
@@ -160,7 +158,7 @@ Run this block together, setting `path_output` to the folder where your harmoniz
 
 ```stata
 local path_output "C:/your/path/gld_workshop"
-use "`path_output'/PAK_2024_LFS_V01_M_V01_A_GLD_RECREATED.dta", clear
+use "`path_output'/[name you gave it].dta", clear
 
 quietly summarize weight, meanonly
 local weight_n = r(N)
