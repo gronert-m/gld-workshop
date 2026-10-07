@@ -1,45 +1,81 @@
-# R and Python versions of the PAK 2024 Recreator
+# R and Python translations of the PAK 2024 GLD harmonization code
 
-The R and Python versions are provided as a courtesy and were created from the Stata Recreator with AI assistance. They have been checked internally, but we cannot verify their behaviour on other computers or offer the same assurance of reliable execution as for the Stata code. Thank you for your understanding.
+The R and Python versions are provided as a courtesy and were created from the Stata harmonization code with AI assistance. They are direct translations of the Stata code into R and Python rather than independent implementations of the harmonization methodology.
 
-Both scripts harmonize the original Pakistan LFS 2024-25 microdata independently; they do not require Stata or its output.
+They have been checked internally, but we cannot verify their behaviour on other computers or offer the same assurance of reliable execution as for the Stata code. The Stata version remains the reference implementation.
 
-## Inputs and execution
+Both scripts harmonize the original Pakistan LFS 2024-25 microdata independently; they do not require Stata or a Stata-produced harmonized dataset.
+
+The project-specific `int_classif_universe` validation routines used in the Stata program are intentionally omitted from the R and Python translations. These routines are quality-control checks on ISIC and ISCO codes and are not required for the substantive harmonization steps.
+
+## Inputs
 
 Obtain the microdata directly from the [Pakistan Bureau of Statistics](https://www.pbs.gov.pk/labour-force-statistics). The workshop does not supply respondent microdata.
 
-Place these inputs in one folder:
+The scripts use the following input files:
 
 ```text
-LFS 2024-25.sav web.dta
+LFS2024-25.sav.dta
 append_lfs_districts.dta
 PAK_country_code_2020.dta
 PAK_training_code.dta
 ```
 
-Keep the supplied `classification_universes` folder next to the R/Python scripts. The 2024 migration lookup is constructed in memory and does not need a separate download.
+The 2024 migration lookup is constructed in memory from `append_lfs_districts.dta`; no separate migration lookup needs to be created beforehand.
 
-Python requires `numpy`, `pandas`, and `pyreadstat`; R requires `haven`. These packages must already be installed in your chosen environment. Once the packages, inputs, and classification tables are available, harmonization does not require a network connection.
+No `classification_universes` files are required.
 
-Run from the folder containing the scripts:
+## Software requirements
 
-```powershell
-python PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py
-Rscript PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R
+Python requires:
+
+```text
+numpy
+pandas
+pyreadstat
 ```
 
-By default, inputs and outputs are in that folder. You may use any folder layout; to specify another input folder and a separate output folder:
+R requires:
 
-```powershell
-python PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.py "C:/your/path/inputs" "C:/your/path/results"
-Rscript PAK_2024_LFS_V01_M_V01_A_GLD_ALL_RECREATOR.R "C:/your/path/inputs" "C:/your/path/results"
+```text
+haven
 ```
 
-Run the whole script. Each version saves its own output:
+These packages must already be installed in the environment in which the scripts are run. Once the required packages and input files are available, harmonization does not require a network connection.
 
-| Version | Output |
-| --- | --- |
-| Python | `PAK_2024_LFS_V01_M_V01_A_GLD_RECREATED_PYTHON.dta` |
-| R | `PAK_2024_LFS_V01_M_V01_A_GLD_RECREATED_R.dta` |
+## Directories
 
-A rerun replaces only the corresponding language's output file. The scripts leave the original respondent and lookup inputs, and the Stata reference output, unchanged.
+The R and Python scripts follow the same directory logic as the Stata harmonization program.
+
+For most users, the input and output paths are constructed from:
+
+```text
+C:/Users/<username>/WBG/GLD - Current Contributors/582018_AQ/
+```
+
+with the corresponding Pakistan master-data and harmonized-data subfolders.
+
+The scripts retain the special path definitions used in the Stata program for the relevant World Bank usernames.
+
+If your files are stored elsewhere, edit the path definitions near the beginning of the script before running it.
+
+## Execution
+
+Run the complete script:
+
+```powershell
+python PAK_2024_LFS_V01_M_V01_A_GLD_direct_translation.py
+Rscript PAK_2024_LFS_V01_M_V01_A_GLD_direct_translation.R
+```
+
+Each version reads the original input datasets, performs the harmonization steps in the same sequence as the Stata program, and writes a Stata `.dta` file to the harmonized-data output directory.
+
+By default, the translated scripts currently save:
+
+```text
+PAK_2024_LFS_V01_M_V01_A_GLD.dta
+```
+
+If a different output filename is required, change the `OUT_FILE` setting near the beginning of the script.
+
+The scripts do not modify the original respondent or lookup files.
