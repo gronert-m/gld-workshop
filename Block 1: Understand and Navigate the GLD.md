@@ -546,6 +546,6 @@ GLD code and documentation
 harmonized variables
 ```
 
-In **Block 2**, we will put that chain to work.
+In **[Block 2](Block_2_Reproduce_GLD.md)**, we will put that chain to work.
 
 We will obtain the original Pakistan LFS data and the published GLD harmonization code, run the harmonization ourselves, resolve its external dependencies, and reproduce the GLD output.
