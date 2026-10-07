@@ -33,7 +33,7 @@ tab work_mobility commute_time, row
 tab work_mobility long_commute, row
 ```
 
-These are **unweighted descriptions of the observed sample**. Missing responses are excluded, not treated as zero commuting time. We do not impute commuting answers for the additional employed group from the ICLS bridge.
+These are **unweighted descriptions of the observed sample**. Missing responses are excluded, not treated as zero commuting time. We do not impute commuting answers for the additional employed group from ICLS 13.
 
 | Residence-to-work pattern | Less than 30 min | 31-45 min | 46-60 min | 61+ min |
 | --- | ---: | ---: | ---: | ---: |
@@ -65,7 +65,7 @@ margins work_mobility
 
 Stata treats `work_mobility` as categorical, with rural-to-rural as the reference category. `margins` reports predicted probabilities, which in this simple model reproduce the observed group shares.
 
-The rural-to-urban odds ratio is about 7.64; that does not mean its probability is 7.64 times larger. Odds are probability divided by one minus probability: the rural-to-rural odds are about 0.053, and rural-to-urban odds about 0.407. Their ratio is 7.64, while the probability ratio is about 5.7. Predicted probabilities are often easier to communicate.
+The rural-to-urban odds ratio is about 7.64; that does not mean its probability is 7.64 times larger. Odds are probability divided by one minus probability: the rural-to-rural odds are about 0.053, and rural-to-urban odds about 0.407. Their ratio is 7.64
 
 ### 2.3. Add the harmonized occupation variable
 
@@ -99,9 +99,9 @@ We use three columns:
 
 | CSV variable | Interpretation |
 | --- | --- |
+| `c_aioe` | Complementarity-adjusted exposure (C-AIOE): greater complementarity reduces adjusted exposure; higher values indicate greater relative potential for substitution. |
 | `aioe_all` | AI Occupational Exposure (AIOE): higher values mean greater relative exposure, without distinguishing substitution from complementarity. |
 | `complementarity_theta` | Potential complementarity: higher values indicate occupational characteristics more conducive to AI supporting human work. |
-| `c_aioe` | Complementarity-adjusted exposure (C-AIOE): greater complementarity reduces adjusted exposure; higher values indicate greater relative potential for substitution. |
 
 **C-AIOE is not a probability of job loss or a percentage of tasks that can be automated.** These measures come from Felten et al. (2021) and Pizzinelli et al. (2023), cited below. We compare continuous scores rather than choosing an arbitrary threshold for "high risk".
 
@@ -140,14 +140,14 @@ merge m:1 occup_isco using `ai_scores'
 * most of them should not be employed (_merge == 1)
 
 * Codes that AI scores (comprehensive of ISCO code universe)
-* has, but are not present in the data.
+* has, but are not present in the data (_merge == 2).
 * For example no codes 2422 "Policy administration professionals"
 * were interviewed in 2024 in Pakistan - quite a pity!
 
 * Checking answers that had no match (all should be unemployed, NLF or kids)
 tab lstatus if _merge == 1,m
 
-* Drop _merge variable after keeping cases either only from PaK 24 (_merge == 1) or matched (_merge == 3)
+* Drop _merge variable after keeping cases either only from PAK 24 (_merge == 1) or matched (_merge == 3)
 keep if inlist(_merge, 1, 3)
 drop _merge
 ```
@@ -156,7 +156,7 @@ The lookup must have only one row per key. After inspecting the merge, `keep if 
 
 ### 3.3. Compare weighted average scores
 
-The sample consists of respondents aged 15 and above who are employed under the standard survey definition, have a positive, nonmissing weight, and have all three occupation scores. Requiring all three scores keeps the comparisons on a common sample. Missing scores are excluded rather than interpreted as zero exposure. The additional ICLS-13 employed group is not assigned scores from assumed occupations.
+The sample consists of respondents aged 15 and above who are employed, have a positive, nonmissing weight, and have all three occupation scores. Requiring all three scores keeps the comparisons on a common sample. Missing scores are excluded rather than interpreted as zero exposure. The additional ICLS-13 employed group is not assigned scores from assumed occupations here.
 
 ```stata
 gen byte ai_eligible = lstatus == 1 & age >= 15 & !missing(age) & weight > 0 & !missing(weight)
@@ -167,7 +167,7 @@ tabstat c_aioe aioe_all complementarity_theta if ai_scored [aw=weight], by(male)
 
 For this Pakistan release, the sample contains 97,128 workers, all with matching keys and all three scores. These commands use the survey weights to calculate descriptive weighted means; they do not estimate survey-design-adjusted uncertainty. Groups with missing education or sex are excluded from the corresponding grouped comparison. Each column represents a different measure, so comparisons concern groups within a column rather than ratios between columns.
 
-| Education | C-AIOE | AIOE | Potential complementarity |
+| Education | C-AIOE | AIOE | Potential complementarity (θ) |
 | --- | ---: | ---: | ---: |
 | No education | 4.300 | 5.664 | 0.548 |
 | Primary | 4.298 | 5.775 | 0.562 |
@@ -185,8 +185,6 @@ In this release, AIOE and potential complementarity both rise across the educati
 Women have slightly lower mean AIOE than men, but higher mean C-AIOE, alongside lower potential complementarity. Adjustment can therefore change the ordering of groups.
 
 Pizzinelli et al. find that higher exposure can coexist with greater complementarity, particularly in highly educated occupations. That motivates our comparison; it does not predetermine Pakistan's results. The scores are constant within a mapped occupation, so group differences reflect occupational composition, not measured differences in individual AI use or a causal effect of education or sex. No survey-design-adjusted uncertainty is estimated, and the small differences should not be presented as established population effects.
-
-The measures rely on US O*NET occupational characteristics and the technology coverage of the cited studies. Pakistan's tasks, working conditions, and AI adoption may differ. These are not continuously updated measures of the latest generative AI systems.
 
 The two applications illustrate distinct uses of the same research dataset: analysing information retained from the survey and joining an external source through a standard classification. Both rely on the documented harmonization completed in the preceding blocks.
 
