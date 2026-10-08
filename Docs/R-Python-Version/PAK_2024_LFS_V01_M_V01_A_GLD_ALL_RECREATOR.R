@@ -4,12 +4,7 @@
 if (!requireNamespace("haven", quietly=TRUE)) stop("Install the haven package before running.")
 
 # 1.2 Set directories — direct translation of the Stata path logic.
-username <- Sys.info()[["user"]]
-if (username == "wb582017") {
-  server <- file.path("C:/Users", username, "WBG", "GLD - 582018_AQ")
-} else {
-  server <- file.path("C:/Users", username, "WBG", "GLD - Current Contributors", "582018_AQ")
-}
+
 
 country <- "PAK"
 year <- "2024"
@@ -21,16 +16,9 @@ level_1 <- paste(country, year, survey, sep="_")
 level_2_mast <- paste(level_1, vermast, "M", sep="_")
 level_2_harm <- paste(level_1, vermast, "M", veralt, "A", "GLD", sep="_")
 
-path_in_stata <- file.path(server, country, level_1, level_2_mast, "Data", "Stata")
-path_in_other <- file.path(server, country, level_1, level_2_mast, "Data", "Original")
-path_output <- file.path(server, country, level_1, level_2_harm, "Data", "Harmonized")
-
-if (username == "wb582018") {
-  myroot <- file.path("C:/Users", username, "OneDrive - WBG", paste0("GLD - ", country))
-  path_in_stata <- file.path(myroot, level_1, level_2_mast, "Data", "Stata")
-  path_in_other <- file.path(myroot, level_1, level_2_mast, "Data", "Original")
-  path_output <- file.path(myroot, level_1, level_2_harm, "Data", "Harmonized")
-}
+path_in_stata <- "PATH-TO-YOUR-FOLDER"
+path_in_other <- path_in_stata
+path_output <- path_in_stata
 
 dir.create(path_output, recursive=TRUE, showWarnings=FALSE)
 
