@@ -1,4 +1,6 @@
-# Direct R translation of PAK_2024_LFS_V01_M_V01_A_GLD.do.
+# Complete revised R translation of PAK_2024_LFS_V01_M_V01_A_GLD.do.
+# Based on the complete user-provided Stata and R programs.
+# Requires original .dta input datasets. Static review only; output not data-validated.
 # The code follows the Stata program section by section using ordinary base R/haven
 # statements. Project-specific int_classif_universe validation blocks are skipped.
 if (!requireNamespace("haven", quietly=TRUE)) stop("Install the haven package before running.")
@@ -16,10 +18,13 @@ level_1 <- paste(country, year, survey, sep="_")
 level_2_mast <- paste(level_1, vermast, "M", sep="_")
 level_2_harm <- paste(level_1, vermast, "M", veralt, "A", "GLD", sep="_")
 
-path_in_stata <- "PATH-TO-YOUR-FOLDER"
+path_in_stata <- "PATH-TO-YOUR-FOLDER"  # Directory containing all four .dta files
 path_in_other <- path_in_stata
 path_output <- path_in_stata
 
+required_files <- c("LFS2024-25.sav.dta", "append_lfs_districts.dta", "PAK_country_code_2020.dta", "PAK_training_code.dta")
+missing_files <- required_files[!file.exists(file.path(path_in_stata, required_files))]
+if (length(missing_files)) stop("Missing input datasets at path_in_stata: ", paste(missing_files, collapse=", "))
 dir.create(path_output, recursive=TRUE, showWarnings=FALSE)
 
 # The supplied Stata excerpt uses `out_file` at save time but does not define it.
@@ -35,7 +40,7 @@ migration <- as.data.frame(haven::read_dta(file.path(path_in_stata, "append_lfs_
 names(migration)[names(migration)=="LFS24_Distcodes"]<-"city_code"
 names(migration)[names(migration)=="LFS24_Distnames"]<-"city_name"
 migration[c("samecode","sametext")]<-NULL; names(migration)<-tolower(names(migration))
-country <- as.data.frame(haven::read_dta(file.path(path_in_stata, "PAK_country_code_2020.dta")))
+country_lookup <- as.data.frame(haven::read_dta(file.path(path_in_stata, "PAK_country_code_2020.dta")))
 training <- as.data.frame(haven::read_dta(file.path(path_in_stata, "PAK_training_code.dta")))
 
 # Source SHA256: d568ed498594b5454c48da52240dade734c9df49a733a9b59e6dbc651ac4b4d9
@@ -120,7 +125,7 @@ d[["sno_str"]] <- d[["sno"]]
 # Stata line 200
 d[["sno_str"]] <- ifelse(is.na(d[["sno_str"]]), ".", sprintf("%02.0f", d[["sno_str"]]))
 # Stata line 201
-d[["pid"]] <- paste0(if(is.character(d[["hhid"]])) d[["hhid"]] else ifelse(is.na(d[["hhid"]]), ".", format(d[["hhid"]], scientific=FALSE, trim=TRUE, digits=9)), if(is.character(d[["sno"]])) d[["sno"]] else ifelse(is.na(d[["sno"]]), ".", format(d[["sno"]], scientific=FALSE, trim=TRUE, digits=9)))
+d[["pid"]] <- paste0(as.character(d[["hhid"]]), as.character(d[["sno"]]))  # Exact original Stata concat(hhid sno); sno_str unused there
 variable_labels[["pid"]] <- "Individual ID"
 stopifnot(!anyDuplicated(d[["pid"]]), !any((is.na(d[["pid"]]) | (is.character(d[["pid"]]) & as.character(d[["pid"]]) == ""))))
 
@@ -284,7 +289,7 @@ variable_labels[["relationharm"]] <- "Relationship to the head of household - Ha
 label_defs[["lblrelationharm"]] <- setNames(c(1, 2, 3, 4, 5, 6), c("Head of household", "Spouse", "Children", "Parents", "Other relatives", "Other and non-relatives"))
 value_labels[["relationharm"]] <- label_defs[["lblrelationharm"]]
 # Stata line 415
-d[["lowest_rel"]] <- ave(d[["s4c3"]], d[["hhid"]], FUN=function(x) min(x,na.rm=TRUE))
+d[["lowest_rel"]] <- ave(d[["s4c3"]], d[["hhid"]], FUN=function(x) if (all(is.na(x))) NA_real_ else min(x,na.rm=TRUE))
 # Stata line 416
 d[["tot_heads"]] <- ave((!is.na(d[["s4c3"]]) & d[["s4c3"]] == 1), d[["hhid"]], FUN=function(x) sum(x,na.rm=TRUE))
 stopifnot(all((!is.na(d[["lowest_rel"]]) & d[["lowest_rel"]] == 1)))
@@ -433,10 +438,10 @@ rm(.drop_cols)
 d[["city_code"]] <- d[["s4c16"]]
 # Stata line 577
 if (anyDuplicated(migration[["city_code"]])) stop(paste("Nonunique lookup key:", "city_code"))
-.idx <- match(d[["city_code"]], migration[["city_code"]])
+.idx <- match(d[["city_code"]], migration[["city_code"]]); .idx[is.na(d[["city_code"]])] <- NA_integer_
 for (.nm in setdiff(names(migration), names(d))) d[[.nm]] <- migration[[.nm]][.idx]
 d[["_merge"]] <- ifelse(is.na(.idx), 1, 3)
-rm(.idx, .nm)
+rm(.idx)
 # Stata line 578
 d[["city_code"]][(!is.na(d[["_merge"]]) & d[["_merge"]] == 1)] <- NA_real_
 d <- d[!((!is.na(d[["_merge"]]) & d[["_merge"]] == 2)), , drop=FALSE]
@@ -456,11 +461,11 @@ variable_labels[["migrated_from_code"]] <- "Code of migration area as subnatid l
 
 # <_migrated_from_country_>
 # Stata line 590
-if (anyDuplicated(country[["city_code"]])) stop(paste("Nonunique lookup key:", "city_code"))
-.idx <- match(d[["city_code"]], country[["city_code"]])
-for (.nm in setdiff(names(country), names(d))) d[[.nm]] <- country[[.nm]][.idx]
+if (anyDuplicated(country_lookup[["city_code"]])) stop(paste("Nonunique lookup key:", "city_code"))
+.idx <- match(d[["city_code"]], country_lookup[["city_code"]]); .idx[is.na(d[["city_code"]])] <- NA_integer_
+for (.nm in setdiff(names(country_lookup), names(d))) d[[.nm]] <- country_lookup[[.nm]][.idx]
 d[["_merge"]] <- ifelse(is.na(.idx), 1, 3)
-rm(.idx, .nm)
+rm(.idx)
 d <- d[!((!is.na(d[["_merge"]]) & d[["_merge"]] == 2)), , drop=FALSE]
 .drop_cols <- unique(unlist(lapply(c("_merge"), function(p) grep(glob2rx(p), names(d), value=TRUE))))
 d[.drop_cols] <- NULL
@@ -622,7 +627,7 @@ d[["educat_isced"]][(!is.na(.recode_source) & .recode_source >= 4 & .recode_sour
 d[["educat_isced"]][(.recode_source == 7)] <- 344
 d[["educat_isced"]][(!is.na(.recode_source) & .recode_source >= 8 & .recode_source <= 12)] <- 660
 d[["educat_isced"]][(!is.na(.recode_source) & .recode_source >= 13 & .recode_source <= 14)] <- 760
-d[["educat_isced"]][(.recode_source == 1516)] <- 860
+d[["educat_isced"]][(.recode_source == 15) | (.recode_source == 16)] <- 860
 rm(.recode_source)
 # Stata line 714
 d[["educat_isced"]][(!is.na(d[["age"]]) & d[["age"]] < d[["ed_mod_age"]])] <- NA_real_
@@ -682,10 +687,10 @@ variable_labels[["vocational_length_u"]] <- "Length of training in months, upper
 d[["code"]] <- d[["s4c12"]]
 # Stata line 793
 if (anyDuplicated(training[["code"]])) stop(paste("Nonunique lookup key:", "code"))
-.idx <- match(d[["code"]], training[["code"]])
+.idx <- match(d[["code"]], training[["code"]]); .idx[is.na(d[["code"]])] <- NA_integer_
 for (.nm in setdiff(names(training), names(d))) d[[.nm]] <- training[[.nm]][.idx]
 d[["_merge"]] <- ifelse(is.na(.idx), 1, 3)
-rm(.idx, .nm)
+rm(.idx)
 d <- d[!((!is.na(d[["_merge"]]) & d[["_merge"]] == 2)), , drop=FALSE]
 # Stata line 795
 d[["vocational_field_orig"]] <- d[["code"]]
@@ -698,12 +703,12 @@ rm(.valid)
 d[["vocational_field_str"]] <- { labs <- value_labels[["vocational_field_orig"]]; out <- names(labs)[match(d[["vocational_field_orig"]], unname(labs))]; out[is.na(out)] <- ""; out }
 # Stata line 798
 d[["vocational_field_str"]] <- paste0(paste0(ifelse(is.na(d[["code"]]), ".", format(d[["code"]], scientific=FALSE, trim=TRUE, digits=9)), " - "), d[["vocational_field_str"]])
-.drop_cols <- unique(unlist(lapply(c("vocational_field_orig", "code", "_merge"), function(p) grep(glob2rx(p), names(d), value=TRUE))))
-d[.drop_cols] <- NULL
-rm(.drop_cols)
-
+# Stata drops numeric vocational_field_orig/code/_merge, then renames string field.
+d[c("vocational_field_orig", "code", "_merge")] <- NULL
+names(d)[names(d) == "vocational_field_str"] <- "vocational_field_orig"
+value_labels[["vocational_field_orig"]] <- NULL  # A string variable cannot carry numeric Stata value labels.
 # Stata line 801
-d[["vocational_field_orig"]][(!is.na(d[["vocational_field_orig"]]) & d[["vocational_field_orig"]] == ". - ")] <- ""
+d[["vocational_field_orig"]][!is.na(d[["vocational_field_orig"]]) & d[["vocational_field_orig"]] == ". - "] <- ""
 variable_labels[["vocational_field_orig"]] <- "Original field of training"
 
 # <_vocational_financed_>
@@ -1032,11 +1037,11 @@ rm(.drop_cols)
 # Stata line 1113
 d[["unitwage"]] <- NA_real_
 # Stata line 1114
-d[["unitwage"]][(((!(is.na(d[["s7c33"]]) | (is.character(d[["s7c33"]]) & as.character(d[["s7c33"]]) == ""))) & (is.na(d[["s7c33"]]) | d[["s7c33"]] > 0)) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1))] <- 2
+d[["unitwage"]][(((!(is.na(d[["s7c33"]]) | (is.character(d[["s7c33"]]) & as.character(d[["s7c33"]]) == ""))) & (!is.na(d[["s7c33"]]) & d[["s7c33"]] > 0)) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1))] <- 2
 # Stata line 1115
-d[["unitwage"]][(((!(is.na(d[["s7c43"]]) | (is.character(d[["s7c43"]]) & as.character(d[["s7c43"]]) == ""))) & (is.na(d[["s7c43"]]) | d[["s7c43"]] > 0)) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1))] <- 5
+d[["unitwage"]][(((!(is.na(d[["s7c43"]]) | (is.character(d[["s7c43"]]) & as.character(d[["s7c43"]]) == ""))) & (!is.na(d[["s7c43"]]) & d[["s7c43"]] > 0)) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1))] <- 5
 # Stata line 1116
-d[["unitwage"]][(((((!(is.na(d[["s7c9"]]) | (is.character(d[["s7c9"]]) & as.character(d[["s7c9"]]) == ""))) & (is.na(d[["s7c9"]]) | d[["s7c9"]] > 0)) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1)) & (is.na(d[["s7c43"]]) | (is.character(d[["s7c43"]]) & as.character(d[["s7c43"]]) == ""))) & (is.na(d[["s7c33"]]) | (is.character(d[["s7c33"]]) & as.character(d[["s7c33"]]) == "")))] <- 8
+d[["unitwage"]][(((((!(is.na(d[["s7c9"]]) | (is.character(d[["s7c9"]]) & as.character(d[["s7c9"]]) == ""))) & (!is.na(d[["s7c9"]]) & d[["s7c9"]] > 0)) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1)) & (is.na(d[["s7c43"]]) | (is.character(d[["s7c43"]]) & as.character(d[["s7c43"]]) == ""))) & (is.na(d[["s7c33"]]) | (is.character(d[["s7c33"]]) & as.character(d[["s7c33"]]) == "")))] <- 8
 # Stata line 1118
 d[["unitwage"]][(!is.na(d[["empstat"]]) & d[["empstat"]] == 2)] <- NA_real_
 # Stata line 1119
@@ -1741,11 +1746,18 @@ rm(.age_mask, .name)
 
 # <_% KEEP VARIABLES - ALL_>
 # Stata line 1891
-d <- d[c("countrycode", "survname", "survey", "icls_v", "isced_version", "isco_version", "isic_version", "year", "vermast", "veralt", "harmonization", "int_year", "int_month", "hhid", "pid", "weight", "weight_m", "weight_q", "psu", "ssu", "strata", "wave", "panel", "visit_no", "urban", "subnatid1", "subnatid2", "subnatid3", "subnatidsurvey", "subnatid1_prev", "subnatid2_prev", "subnatid3_prev", "gaul_adm1_code", "gaul_adm2_code", "gaul_adm3_code", "hsize", "age", "male", "relationharm", "relationcs", "marital", "eye_dsablty", "hear_dsablty", "walk_dsablty", "conc_dsord", "slfcre_dsablty", "comm_dsablty", "migrated_mod_age", "migrated_ref_time", "migrated_binary", "migrated_years", "migrated_from_urban", "migrated_from_cat", "migrated_from_code", "migrated_from_country", "migrated_reason", "ed_mod_age", "school", "literacy", "educy", "educat7", "educat5", "educat4", "educat_orig", "educat_isced", "vocational", "vocational_type", "vocational_length_l", "vocational_length_u", "vocational_field_orig", "vocational_financed", "minlaborage", "lstatus", "potential_lf", "underemployment", "nlfreason", "unempldur_l", "unempldur_u", "empstat", "ocusec", "industry_orig", "industrycat_isic", "industrycat10", "industrycat4", "occup_orig", "occup_isco", "occup_skill", "occup", "wage_no_compen", "unitwage", "whours", "wmonths", "wage_total", "contract", "healthins", "socialsec", "union", "firmsize_l", "firmsize_u", "empstat_2", "ocusec_2", "industry_orig_2", "industrycat_isic_2", "industrycat10_2", "industrycat4_2", "occup_orig_2", "occup_isco_2", "occup_skill_2", "occup_2", "wage_no_compen_2", "unitwage_2", "whours_2", "wmonths_2", "wage_total_2", "firmsize_l_2", "firmsize_u_2", "t_hours_others", "t_wage_nocompen_others", "t_wage_others", "t_hours_total", "t_wage_nocompen_total", "t_wage_total", "lstatus_year", "potential_lf_year", "underemployment_year", "nlfreason_year", "unempldur_l_year", "unempldur_u_year", "empstat_year", "ocusec_year", "industry_orig_year", "industrycat_isic_year", "industrycat10_year", "industrycat4_year", "occup_orig_year", "occup_isco_year", "occup_skill_year", "occup_year", "wage_no_compen_year", "unitwage_year", "whours_year", "wmonths_year", "wage_total_year", "contract_year", "healthins_year", "socialsec_year", "union_year", "firmsize_l_year", "firmsize_u_year", "empstat_2_year", "ocusec_2_year", "industry_orig_2_year", "industrycat_isic_2_year", "industrycat10_2_year", "industrycat4_2_year", "occup_orig_2_year", "occup_isco_2_year", "occup_skill_2_year", "occup_2_year", "wage_no_compen_2_year", "unitwage_2_year", "whours_2_year", "wmonths_2_year", "wage_total_2_year", "firmsize_l_2_year", "firmsize_u_2_year", "t_hours_others_year", "t_wage_nocompen_others_year", "t_wage_others_year", "t_hours_total_year", "t_wage_nocompen_total_year", "t_wage_total_year", "njobs", "t_hours_annual", "linc_nc", "laborincome")]
+keep_vars <- c("countrycode", "survname", "survey", "icls_v", "isced_version", "isco_version", "isic_version", "year", "vermast", "veralt", "harmonization", "int_year", "int_month", "hhid", "pid", "weight", "weight_m", "weight_q", "psu", "ssu", "strata", "wave", "panel", "visit_no", "urban", "subnatid1", "subnatid2", "subnatid3", "subnatidsurvey", "subnatid1_prev", "subnatid2_prev", "subnatid3_prev", "gaul_adm1_code", "gaul_adm2_code", "gaul_adm3_code", "hsize", "age", "male", "relationharm", "relationcs", "marital", "eye_dsablty", "hear_dsablty", "walk_dsablty", "conc_dsord", "slfcre_dsablty", "comm_dsablty", "migrated_mod_age", "migrated_ref_time", "migrated_binary", "migrated_years", "migrated_from_urban", "migrated_from_cat", "migrated_from_code", "migrated_from_country", "migrated_reason", "ed_mod_age", "school", "literacy", "educy", "educat7", "educat5", "educat4", "educat_orig", "educat_isced", "vocational", "vocational_type", "vocational_length_l", "vocational_length_u", "vocational_field_orig", "vocational_financed", "minlaborage", "lstatus", "potential_lf", "underemployment", "nlfreason", "unempldur_l", "unempldur_u", "empstat", "ocusec", "industry_orig", "industrycat_isic", "industrycat10", "industrycat4", "occup_orig", "occup_isco", "occup_skill", "occup", "wage_no_compen", "unitwage", "whours", "wmonths", "wage_total", "contract", "healthins", "socialsec", "union", "firmsize_l", "firmsize_u", "empstat_2", "ocusec_2", "industry_orig_2", "industrycat_isic_2", "industrycat10_2", "industrycat4_2", "occup_orig_2", "occup_isco_2", "occup_skill_2", "occup_2", "wage_no_compen_2", "unitwage_2", "whours_2", "wmonths_2", "wage_total_2", "firmsize_l_2", "firmsize_u_2", "t_hours_others", "t_wage_nocompen_others", "t_wage_others", "t_hours_total", "t_wage_nocompen_total", "t_wage_total", "lstatus_year", "potential_lf_year", "underemployment_year", "nlfreason_year", "unempldur_l_year", "unempldur_u_year", "empstat_year", "ocusec_year", "industry_orig_year", "industrycat_isic_year", "industrycat10_year", "industrycat4_year", "occup_orig_year", "occup_isco_year", "occup_skill_year", "occup_year", "wage_no_compen_year", "unitwage_year", "whours_year", "wmonths_year", "wage_total_year", "contract_year", "healthins_year", "socialsec_year", "union_year", "firmsize_l_year", "firmsize_u_year", "empstat_2_year", "ocusec_2_year", "industry_orig_2_year", "industrycat_isic_2_year", "industrycat10_2_year", "industrycat4_2_year", "occup_orig_2_year", "occup_isco_2_year", "occup_skill_2_year", "occup_2_year", "wage_no_compen_2_year", "unitwage_2_year", "whours_2_year", "wmonths_2_year", "wage_total_2_year", "firmsize_l_2_year", "firmsize_u_2_year", "t_hours_others_year", "t_wage_nocompen_others_year", "t_wage_others_year", "t_hours_total_year", "t_wage_nocompen_total_year", "t_wage_total_year", "njobs", "t_hours_annual", "linc_nc", "laborincome")
+# Allow unavailable all-missing placeholders, but warn so coverage can be reviewed.
+missing_harmonized <- setdiff(keep_vars, names(d))
+if (length(missing_harmonized)) {
+  warning("Harmonized variables absent prior to keep: ", paste(missing_harmonized, collapse=", "))
+  for (nm in missing_harmonized) d[[nm]] <- NA_real_
+}
+d <- d[keep_vars]
 
 # <_% ORDER VARIABLES_>
 # Stata line 1897
-d <- d[c("countrycode", "survname", "survey", "icls_v", "isced_version", "isco_version", "isic_version", "year", "vermast", "veralt", "harmonization", "int_year", "int_month", "hhid", "pid", "weight", "weight_m", "weight_q", "psu", "ssu", "strata", "wave", "panel", "visit_no", "urban", "subnatid1", "subnatid2", "subnatid3", "subnatidsurvey", "subnatid1_prev", "subnatid2_prev", "subnatid3_prev", "gaul_adm1_code", "gaul_adm2_code", "gaul_adm3_code", "hsize", "age", "male", "relationharm", "relationcs", "marital", "eye_dsablty", "hear_dsablty", "walk_dsablty", "conc_dsord", "slfcre_dsablty", "comm_dsablty", "migrated_mod_age", "migrated_ref_time", "migrated_binary", "migrated_years", "migrated_from_urban", "migrated_from_cat", "migrated_from_code", "migrated_from_country", "migrated_reason", "ed_mod_age", "school", "literacy", "educy", "educat7", "educat5", "educat4", "educat_orig", "educat_isced", "vocational", "vocational_type", "vocational_length_l", "vocational_length_u", "vocational_field_orig", "vocational_financed", "minlaborage", "lstatus", "potential_lf", "underemployment", "nlfreason", "unempldur_l", "unempldur_u", "empstat", "ocusec", "industry_orig", "industrycat_isic", "industrycat10", "industrycat4", "occup_orig", "occup_isco", "occup_skill", "occup", "wage_no_compen", "unitwage", "whours", "wmonths", "wage_total", "contract", "healthins", "socialsec", "union", "firmsize_l", "firmsize_u", "empstat_2", "ocusec_2", "industry_orig_2", "industrycat_isic_2", "industrycat10_2", "industrycat4_2", "occup_orig_2", "occup_isco_2", "occup_skill_2", "occup_2", "wage_no_compen_2", "unitwage_2", "whours_2", "wmonths_2", "wage_total_2", "firmsize_l_2", "firmsize_u_2", "t_hours_others", "t_wage_nocompen_others", "t_wage_others", "t_hours_total", "t_wage_nocompen_total", "t_wage_total", "lstatus_year", "potential_lf_year", "underemployment_year", "nlfreason_year", "unempldur_l_year", "unempldur_u_year", "empstat_year", "ocusec_year", "industry_orig_year", "industrycat_isic_year", "industrycat10_year", "industrycat4_year", "occup_orig_year", "occup_isco_year", "occup_skill_year", "occup_year", "wage_no_compen_year", "unitwage_year", "whours_year", "wmonths_year", "wage_total_year", "contract_year", "healthins_year", "socialsec_year", "union_year", "firmsize_l_year", "firmsize_u_year", "empstat_2_year", "ocusec_2_year", "industry_orig_2_year", "industrycat_isic_2_year", "industrycat10_2_year", "industrycat4_2_year", "occup_orig_2_year", "occup_isco_2_year", "occup_skill_2_year", "occup_2_year", "wage_no_compen_2_year", "unitwage_2_year", "whours_2_year", "wmonths_2_year", "wage_total_2_year", "firmsize_l_2_year", "firmsize_u_2_year", "t_hours_others_year", "t_wage_nocompen_others_year", "t_wage_others_year", "t_hours_total_year", "t_wage_nocompen_total_year", "t_wage_total_year", "njobs", "t_hours_annual", "linc_nc", "laborincome")]
+# Already ordered as in the Stata KEEP command.
 
 # <_% DROP UNUSED LABELS_>
 
@@ -1758,7 +1770,7 @@ d <- d[c("countrycode", "survname", "survey", "icls_v", "isced_version", "isco_v
 # 9. Drop wholly missing variables, as the Stata Recreator does.
 d <- d[!vapply(d,function(x) all((is.na(x) | (is.character(x) & as.character(x) == ""))), logical(1))]
 for (nm in names(d)) {
-  if (!is.null(value_labels[[nm]])) d[[nm]]<-haven::labelled(d[[nm]], value_labels[[nm]])
+  if (!is.null(value_labels[[nm]]) && is.numeric(d[[nm]]) && length(value_labels[[nm]]) > 0L) d[[nm]] <- haven::labelled(as.numeric(d[[nm]]), value_labels[[nm]])
   if (!is.null(variable_labels[[nm]])) attr(d[[nm]],"label")<-variable_labels[[nm]]
 }
 filename <- file.path(path_output, OUT_FILE)
