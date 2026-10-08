@@ -12,13 +12,6 @@ import numpy as np
 import pandas as pd
 import pyreadstat
 
-# 1.2 Set directories — direct translation of the Stata path logic.
-username = getpass.getuser()
-if username == "wb582017":
-    server = Path(f"C:/Users/{username}/WBG/GLD - 582018_AQ")
-else:
-    server = Path(f"C:/Users/{username}/WBG/GLD - Current Contributors/582018_AQ")
-
 country = "PAK"
 year = "2024"
 survey = "LFS"
@@ -29,15 +22,9 @@ level_1 = f"{country}_{year}_{survey}"
 level_2_mast = f"{level_1}_{vermast}_M"
 level_2_harm = f"{level_1}_{vermast}_M_{veralt}_A_GLD"
 
-path_in_stata = server / country / level_1 / level_2_mast / "Data" / "Stata"
-path_in_other = server / country / level_1 / level_2_mast / "Data" / "Original"
-path_output = server / country / level_1 / level_2_harm / "Data" / "Harmonized"
-
-if username == "wb582018":
-    myroot = Path(f"C:/Users/{username}/OneDrive - WBG/GLD - {country}")
-    path_in_stata = myroot / level_1 / level_2_mast / "Data" / "Stata"
-    path_in_other = myroot / level_1 / level_2_mast / "Data" / "Original"
-    path_output = myroot / level_1 / level_2_harm / "Data" / "Harmonized"
+path_in_stata = "[YOUR PATH TO THE FOLDER]"
+path_in_other = path_in_stata
+path_output = path_in_stata
 
 # Set PAK_LFS_INPUT_DIR and optionally PAK_LFS_OUTPUT_DIR to override
 # the original World Bank directory layout on another machine.
