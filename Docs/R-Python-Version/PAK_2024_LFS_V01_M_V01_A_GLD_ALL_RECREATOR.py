@@ -39,6 +39,11 @@ if username == "wb582018":
     path_in_other = myroot / level_1 / level_2_mast / "Data" / "Original"
     path_output = myroot / level_1 / level_2_harm / "Data" / "Harmonized"
 
+# Set PAK_LFS_INPUT_DIR and optionally PAK_LFS_OUTPUT_DIR to override
+# the original World Bank directory layout on another machine.
+import os
+path_in_stata = Path(os.environ.get("PAK_LFS_INPUT_DIR", str(path_in_stata)))
+path_output = Path(os.environ.get("PAK_LFS_OUTPUT_DIR", str(path_output)))
 path_output.mkdir(parents=True, exist_ok=True)
 
 # The supplied Stata excerpt uses `out_file` at save time but does not define it.
@@ -49,14 +54,21 @@ VARIABLE_LABELS, LABEL_DEFS, VALUE_LABELS = {}, {}, {}
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 # 1. Assemble inputs without overwriting the migration lookup or raw files.
+required_inputs = ["LFS2024-25.sav.dta", "append_lfs_districts.dta",
+                   "PAK_country_code_2020.dta", "PAK_training_code.dta"]
+missing_inputs = [name for name in required_inputs if not (path_in_stata / name).is_file()]
+if missing_inputs:
+    raise FileNotFoundError(f"Missing input datasets in {path_in_stata}: {missing_inputs}")
 d=pyreadstat.read_dta(str(path_in_stata / 'LFS2024-25.sav.dta'), apply_value_formats=False)[0]
 d.columns=d.columns.str.lower()
 migration=pyreadstat.read_dta(str(path_in_stata / 'append_lfs_districts.dta'), apply_value_formats=False)[0]
 migration=migration.rename(columns={'LFS24_Distcodes':'city_code','LFS24_Distnames':'city_name'})
 migration=migration.drop(columns=['samecode','sametext'])
 migration.columns=migration.columns.str.lower()
-country=pyreadstat.read_dta(str(path_in_stata / 'PAK_country_code_2020.dta'), apply_value_formats=False)[0]
+country_lookup=pyreadstat.read_dta(str(path_in_stata / 'PAK_country_code_2020.dta'), apply_value_formats=False)[0]
 training=pyreadstat.read_dta(str(path_in_stata / 'PAK_training_code.dta'), apply_value_formats=False)[0]
+country_lookup.columns = country_lookup.columns.str.lower()
+training.columns = training.columns.str.lower()
 
 # Source SHA256: d568ed498594b5454c48da52240dade734c9df49a733a9b59e6dbc651ac4b4d9
 
@@ -139,7 +151,7 @@ VARIABLE_LABELS["hhid"] = "Household ID"
 d["sno_str"] = d['sno']
 # Stata line 200
 d["sno_str"] = d["sno_str"].map(lambda v: "." if pd.isna(v) else format(v, "02.0f"))
-# Stata line 201
+# Stata line 201 (the Stata source concatenates sno, not sno_str)
 d["pid"] = (d['hhid'] if d['hhid'].dtype == object else d['hhid'].map(lambda v: '.' if pd.isna(v) else format(float(v), '.9g'))) + (d['sno'] if d['sno'].dtype == object else d['sno'].map(lambda v: '.' if pd.isna(v) else format(float(v), '.9g')))
 VARIABLE_LABELS["pid"] = "Individual ID"
 assert not d["pid"].duplicated().any() and not (d["pid"].isna() | d["pid"].eq("")).any()
@@ -425,7 +437,7 @@ VARIABLE_LABELS["migrated_from_urban"] = "Migrated from area"
 
 # <_migrated_from_cat_>
 # Stata line 557
-d["helper_mfc_1"] = np.floor(d['s4c16'] / 100).map(lambda v: '.' if pd.isna(v) else format(float(v), '.9g'))
+d["helper_mfc_1"] = np.floor(d['s4c16'] / 100).map(lambda v: np.nan if pd.isna(v) else format(float(v), '.9g'))
 d.loc[~(d['s4c16'] < 1000), "helper_mfc_1"] = np.nan
 # Stata line 558
 d["helper_mfc_2"] = d['pcode'].str.slice(0, 1)
@@ -456,7 +468,7 @@ _lookup = migration.copy()
 if _lookup["city_code"].duplicated().any():
     raise ValueError("Nonunique lookup key: city_code")
 _lookup = _lookup.drop(columns=[c for c in _lookup.columns if c in d.columns and c != "city_code"])
-d = d.merge(_lookup, on="city_code", how="left", validate="many_to_one", indicator=True, sort=False)
+d = d.merge(_lookup.loc[_lookup["city_code"].notna()], on="city_code", how="left", validate="many_to_one", indicator=True, sort=False)
 d["_merge"] = d["_merge"].map({"left_only": 1, "right_only": 2, "both": 3}).astype(float)
 del _lookup
 # Stata line 578
@@ -478,11 +490,11 @@ VARIABLE_LABELS["migrated_from_code"] = "Code of migration area as subnatid leve
 
 # <_migrated_from_country_>
 # Stata line 590
-_lookup = country.copy()
+_lookup = country_lookup.copy()
 if _lookup["city_code"].duplicated().any():
     raise ValueError("Nonunique lookup key: city_code")
 _lookup = _lookup.drop(columns=[c for c in _lookup.columns if c in d.columns and c != "city_code"])
-d = d.merge(_lookup, on="city_code", how="left", validate="many_to_one", indicator=True, sort=False)
+d = d.merge(_lookup.loc[_lookup["city_code"].notna()], on="city_code", how="left", validate="many_to_one", indicator=True, sort=False)
 d["_merge"] = d["_merge"].map({"left_only": 1, "right_only": 2, "both": 3}).astype(float)
 del _lookup
 d = d.loc[~((d["_merge"] == 2))].reset_index(drop=True)
@@ -496,7 +508,7 @@ d.loc[~((d['country'] == 1) & (d['migrated_binary'] == 1)), "migrated_from_count
 d["country_name"] = d['iso_code']
 d.loc[~((d['country'] == 1) & (d['migrated_binary'] == 1)), "country_name"] = np.nan
 # Stata line 595
-_labels = d.loc[d["migrated_from_country"].notna(), ["migrated_from_country", "country_name"]].drop_duplicates()
+_labels = d.loc[d["migrated_from_country"].notna() & d["country_name"].notna(), ["migrated_from_country", "country_name"]].drop_duplicates()
 if _labels["migrated_from_country"].duplicated().any():
     raise ValueError("Conflicting labels for migrated_from_country")
 VALUE_LABELS["migrated_from_country"] = {int(k): str(v) for k, v in _labels.itertuples(index=False, name=None)}
@@ -535,7 +547,7 @@ d["school"] = np.nan
 # Stata line 636
 d.loc[d['s4c10'] <= 3, "school"] = 0
 # Stata line 637
-d.loc[(d['s4c10'].isna() | (d['s4c10'] > 3)) & (d['s4c10'] != np.nan), "school"] = 1
+d.loc[d['s4c10'].notna() & (d['s4c10'] > 3), "school"] = 1
 VARIABLE_LABELS["school"] = "Attending school"
 LABEL_DEFS["lblschool"] = {0: 'No', 1: 'Yes'}
 VALUE_LABELS["school"] = LABEL_DEFS["lblschool"].copy()
@@ -647,7 +659,7 @@ d.loc[_source_educat_isced.between(4, 6), "educat_isced"] = 244
 d.loc[(_source_educat_isced == 7), "educat_isced"] = 344
 d.loc[_source_educat_isced.between(8, 12), "educat_isced"] = 660
 d.loc[_source_educat_isced.between(13, 14), "educat_isced"] = 760
-d.loc[(_source_educat_isced == 1516), "educat_isced"] = 860
+d.loc[_source_educat_isced.between(15, 16), "educat_isced"] = 860
 del _source_educat_isced
 # Stata line 714
 d.loc[d['age'] < d['ed_mod_age'], "educat_isced"] = np.nan
@@ -711,7 +723,7 @@ _lookup = training.copy()
 if _lookup["code"].duplicated().any():
     raise ValueError("Nonunique lookup key: code")
 _lookup = _lookup.drop(columns=[c for c in _lookup.columns if c in d.columns and c != "code"])
-d = d.merge(_lookup, on="code", how="left", validate="many_to_one", indicator=True, sort=False)
+d = d.merge(_lookup.loc[_lookup["code"].notna()], on="code", how="left", validate="many_to_one", indicator=True, sort=False)
 d["_merge"] = d["_merge"].map({"left_only": 1, "right_only": 2, "both": 3}).astype(float)
 del _lookup
 d = d.loc[~((d["_merge"] == 2))].reset_index(drop=True)
@@ -727,9 +739,10 @@ del _labels
 d["vocational_field_str"] = d['vocational_field_orig'].map(VALUE_LABELS.get('vocational_field_orig', {})).fillna('')
 # Stata line 798
 d["vocational_field_str"] = d['code'].map(lambda v: '.' if pd.isna(v) else format(float(v), '.9g')) + ' - ' + d['vocational_field_str']
-_drop_cols = [col for col in d.columns if any(fnmatch.fnmatchcase(col, pat) for pat in ['vocational_field_orig', 'code', '_merge'])]
-d = d.drop(columns=_drop_cols)
-del _drop_cols
+# The Stata program drops the numeric original, then renames the string field.
+d = d.drop(columns=['vocational_field_orig', 'code', '_merge'])
+d = d.rename(columns={'vocational_field_str': 'vocational_field_orig'})
+VALUE_LABELS.pop('vocational_field_orig', None)  # string field cannot carry numeric labels
 
 # Stata line 801
 d.loc[d['vocational_field_orig'] == '. - ', "vocational_field_orig"] = ''
