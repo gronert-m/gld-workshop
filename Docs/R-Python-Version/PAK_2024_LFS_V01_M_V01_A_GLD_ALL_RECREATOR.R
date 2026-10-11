@@ -16,7 +16,7 @@ level_1 <- paste(country, year, survey, sep="_")
 level_2_mast <- paste(level_1, vermast, "M", sep="_")
 level_2_harm <- paste(level_1, vermast, "M", veralt, "A", "GLD", sep="_")
 
-path_in_stata <- "[YOUR FOLDER PATH]"
+path_in_stata <- "C:/Users/wb529026/OneDrive - WBG/Documents/test"
 path_in_other <- path_in_stata
 path_output <- path_in_stata
 
@@ -210,9 +210,13 @@ variable_labels[["subnatid3"]] <- "Subnational ID at Third Administrative Level"
 # Stata line 317
 d[["subnatidsurvey"]] <- ""
 # Stata line 318
-d[["subnatidsurvey"]][(!is.na(d[["urban"]]) & d[["urban"]] == 1)] <- paste0(d[["subnatid1"]], " - Urban")
+.idx <- !is.na(d[["urban"]]) & d[["urban"]] == 1
+d[["subnatidsurvey"]][.idx] <- paste0(d[["subnatid1"]][.idx], " - Urban")
 # Stata line 319
-d[["subnatidsurvey"]][(!is.na(d[["urban"]]) & d[["urban"]] == 0)] <- paste0(d[["subnatid1"]], " - Rural")
+.idx <- !is.na(d[["urban"]]) & d[["urban"]] == 0
+d[["subnatidsurvey"]][.idx] <- paste0(d[["subnatid1"]][.idx], " - Rural")
+
+rm(.idx)
 variable_labels[["subnatidsurvey"]] <- "Administrative level at which survey is representative"
 
 # <_subnatid1_prev_>
@@ -283,10 +287,18 @@ rm(.recode_source)
 variable_labels[["relationharm"]] <- "Relationship to the head of household - Harmonized"
 label_defs[["lblrelationharm"]] <- setNames(c(1, 2, 3, 4, 5, 6), c("Head of household", "Spouse", "Children", "Parents", "Other relatives", "Other and non-relatives"))
 value_labels[["relationharm"]] <- label_defs[["lblrelationharm"]]
+
+
 # Stata line 415
-d[["lowest_rel"]] <- ave(d[["s4c3"]], d[["hhid"]], FUN=function(x) min(x,na.rm=TRUE))
+hh_min <- tapply(d[["s4c3"]], d[["hhid"]], min, na.rm = TRUE)
+d[["lowest_rel"]] <- unname(hh_min[match(d[["hhid"]], names(hh_min))])
+
 # Stata line 416
-d[["tot_heads"]] <- ave((!is.na(d[["s4c3"]]) & d[["s4c3"]] == 1), d[["hhid"]], FUN=function(x) sum(x,na.rm=TRUE))
+hh_heads <- tapply(d[["s4c3"]] == 1, d[["hhid"]], sum, na.rm = TRUE)
+d[["tot_heads"]] <- unname(hh_heads[match(d[["hhid"]], names(hh_heads))])
+
+rm(hh_min, hh_heads)
+
 stopifnot(all((!is.na(d[["lowest_rel"]]) & d[["lowest_rel"]] == 1)))
 stopifnot(all((!is.na(d[["tot_heads"]]) & d[["tot_heads"]] == 1)))
 
@@ -298,6 +310,7 @@ variable_labels[["relationcs"]] <- "Relationship to the head of household - Coun
 # <_marital_>
 # Stata line 429
 d[["marital"]] <- d[["s4c7"]]
+
 # Stata line 430
 .recode_source <- d[["marital"]]
 d[["marital"]][(.recode_source == 2)] <- 1
@@ -370,21 +383,27 @@ value_labels[["migrated_binary"]] <- label_defs[["lblmigrated_binary"]]
 variable_labels[["migrated_binary"]] <- "Individual has migrated"
 
 # <_migrated_years_>
-# Stata line 528
+# Stata lines 528-532
+
 d[["migrated_years"]] <- NA_real_
-# Stata line 529
-d[["migrated_years"]][(!is.na(d[["s4c15"]]) & d[["s4c15"]] == 2)] <- 0.5
-# Stata line 530
-d[["migrated_years"]][(!is.na(d[["s4c15"]]) & d[["s4c15"]] >= 3 & d[["s4c15"]] <= 6)] <- (d[["s4c15"]] - 2)
-# Stata line 531
-d[["migrated_years"]][(!is.na(d[["s4c15"]]) & d[["s4c15"]] == 7)] <- 7.5
-# Stata line 532
-d[["migrated_years"]][(!is.na(d[["s4c15"]]) & d[["s4c15"]] == 8)] <- 11
+
+d[["migrated_years"]][d[["s4c15"]] == 2 & !is.na(d[["s4c15"]])] <- 0.5
+
+.idx <- !is.na(d[["s4c15"]]) &
+  d[["s4c15"]] >= 3 &
+  d[["s4c15"]] <= 6
+d[["migrated_years"]][.idx] <- d[["s4c15"]][.idx] - 2
+rm(.idx)
+
+d[["migrated_years"]][d[["s4c15"]] == 7 & !is.na(d[["s4c15"]])] <- 7.5
+d[["migrated_years"]][d[["s4c15"]] == 8 & !is.na(d[["s4c15"]])] <- 11
+
 # Stata line 533
 d[["migrated_years"]][(is.na(d[["migrated_binary"]]) | d[["migrated_binary"]] != 1)] <- NA_real_
 # Stata line 534
 d[["migrated_years"]][(!is.na(d[["age"]]) & d[["age"]] < d[["migrated_mod_age"]])] <- NA_real_
 variable_labels[["migrated_years"]] <- "Years since latest migration"
+
 
 # <_migrated_from_urban_>
 # Stata line 540
@@ -817,14 +836,23 @@ d[["nlfreason_2"]][(.recode_source == 10)] <- 2
 d[["nlfreason_2"]][(.recode_source == 12)] <- 4
 d[["nlfreason_2"]][(!is.na(.recode_source) & .recode_source >= 1 & .recode_source <= 8) | (.recode_source == 11) | (!is.na(.recode_source) & .recode_source >= 13 & .recode_source <= 14)] <- 5
 rm(.recode_source)
+
 # Stata line 914
 d[["nlfreason"]] <- d[["nlfreason_1"]]
+
 # Stata line 915
-d[["nlfreason"]][(is.na(d[["nlfreason"]]) | (is.character(d[["nlfreason"]]) & as.character(d[["nlfreason"]]) == ""))] <- d[["nlfreason_2"]]
+.idx <- is.na(d[["nlfreason"]]) |
+  (is.character(d[["nlfreason"]]) & as.character(d[["nlfreason"]]) == "")
+
+d[["nlfreason"]][.idx] <- d[["nlfreason_2"]][.idx]
+rm(.idx)
+
 # Stata line 916
-d[["nlfreason"]][(is.na(d[["lstatus"]]) | d[["lstatus"]] != 3)] <- NA_real_
+d[["nlfreason"]][is.na(d[["lstatus"]]) | d[["lstatus"]] != 3] <- NA_real_
+
 # Stata line 917
-d[["nlfreason"]][((!is.na(d[["lstatus"]]) & d[["lstatus"]] == 3) & is.na(d[["nlfreason"]]))] <- 5
+d[["nlfreason"]][!is.na(d[["lstatus"]]) & d[["lstatus"]] == 3 & is.na(d[["nlfreason"]])] <- 5
+
 variable_labels[["nlfreason"]] <- "Reason not in the labor force"
 label_defs[["lblnlfreason"]] <- setNames(c(1, 2, 3, 4, 5), c("Student", "Housekeeper", "Retired", "Disabled", "Other"))
 value_labels[["nlfreason"]] <- label_defs[["lblnlfreason"]]
@@ -832,36 +860,51 @@ value_labels[["nlfreason"]] <- label_defs[["lblnlfreason"]]
 # <_unempldur_l_>
 # Stata line 925
 d[["unempldur_l"]] <- NA_real_
+
 # Stata line 926
-d[["unempldur_l"]][(!is.na(d[["lstatus"]]) & d[["lstatus"]] == 2)] <- d[["s9c3"]]
+.idx <- !is.na(d[["lstatus"]]) & d[["lstatus"]] == 2
+d[["unempldur_l"]][.idx] <- d[["s9c3"]][.idx]
+rm(.idx)
+
 # Stata line 927
 .recode_source <- d[["unempldur_l"]]
-d[["unempldur_l"]][(.recode_source == 1)] <- 0
-d[["unempldur_l"]][(.recode_source == 2)] <- 1
-d[["unempldur_l"]][(.recode_source == 3)] <- 3
-d[["unempldur_l"]][(.recode_source == 4)] <- 6
-d[["unempldur_l"]][(.recode_source == 5)] <- 12
+d[["unempldur_l"]][.recode_source == 1] <- 0
+d[["unempldur_l"]][.recode_source == 2] <- 1
+d[["unempldur_l"]][.recode_source == 3] <- 3
+d[["unempldur_l"]][.recode_source == 4] <- 6
+d[["unempldur_l"]][.recode_source == 5] <- 12
 rm(.recode_source)
+
 # Stata line 928
-d[["unempldur_l"]][(!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1)] <- NA_real_
+d[["unempldur_l"]][!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1] <- NA_real_
+
 variable_labels[["unempldur_l"]] <- "Unemployment duration (months) lower bracket"
 
 # <_unempldur_u_>
 # Stata line 934
 d[["unempldur_u"]] <- NA_real_
+
 # Stata line 935
-d[["unempldur_u"]][(!is.na(d[["lstatus"]]) & d[["lstatus"]] == 2)] <- d[["s9c3"]]
+.idx <- !is.na(d[["lstatus"]]) & d[["lstatus"]] == 2
+d[["unempldur_u"]][.idx] <- d[["s9c3"]][.idx]
+rm(.idx)
+
 # Stata line 936
 .recode_source <- d[["unempldur_u"]]
-d[["unempldur_u"]][(.recode_source == 1)] <- 0
-d[["unempldur_u"]][(.recode_source == 2)] <- 3
-d[["unempldur_u"]][(.recode_source == 3)] <- 6
-d[["unempldur_u"]][(.recode_source == 4)] <- 12
-d[["unempldur_u"]][(.recode_source == 5)] <- NA_real_
+d[["unempldur_u"]][.recode_source == 1] <- 0
+d[["unempldur_u"]][.recode_source == 2] <- 3
+d[["unempldur_u"]][.recode_source == 3] <- 6
+d[["unempldur_u"]][.recode_source == 4] <- 12
+d[["unempldur_u"]][.recode_source == 5] <- NA_real_
 rm(.recode_source)
+
 # Stata line 937
-d[["unempldur_u"]][(!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1)] <- NA_real_
-variable_labels[["unempldur_u"]] <- "Unemployment duration (months) upper bracket"
+d[["unempldur_u"]][
+  !is.na(d[["lstatus"]]) & d[["lstatus"]] == 1
+] <- NA_real_
+
+variable_labels[["unempldur_u"]] <-
+  "Unemployment duration (months) upper bracket"
 
 # ----------8.2: 7 day reference main job------------------------------*
 
@@ -1067,11 +1110,15 @@ value_labels[["unitwage"]] <- label_defs[["lblunitwage"]]
 # <_whours_>
 # Stata line 1130
 d[["whours"]] <- NA_real_
+
 # Stata line 1131
-d[["whours"]][(!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1)] <- d[["s5c24"]]
+.idx <- !is.na(d[["lstatus"]]) & d[["lstatus"]] == 1
+d[["whours"]][.idx] <- d[["s5c24"]][.idx]
+rm(.idx)
+
 # Stata line 1132
-d[["whours"]][((!is.na(d[["whours"]]) & d[["whours"]] == 0) & (!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1))] <- NA_real_
-variable_labels[["whours"]] <- "Hours of work in last week primary job 7 day recall"
+d[["whours"]][!is.na(d[["whours"]]) & d[["whours"]] == 0 & !is.na(d[["lstatus"]]) & d[["lstatus"]] == 1] <- NA_real_
+variable_labels[["whours"]] <-   "Hours of work in last week primary job 7 day recall"
 
 # <_wmonths_>
 # Stata line 1138
@@ -1089,12 +1136,17 @@ variable_labels[["wage_total"]] <- "Annualized total wage primary job 7 day reca
 # Stata line 1157
 d[["contract"]] <- NA_real_
 # Stata line 1158
-d[["contract"]][(!is.na(d[["lstatus"]]) & d[["lstatus"]] == 1)] <- d[["s7c1"]]
+.idx <- !is.na(d[["lstatus"]]) & d[["lstatus"]] == 1
+d[["contract"]][.idx] <- d[["s7c1"]][.idx]
+rm(.idx)
+
 # Stata line 1159
 .recode_source <- d[["contract"]]
-d[["contract"]][(!is.na(.recode_source) & .recode_source >= 1 & .recode_source <= 6)] <- 1
-d[["contract"]][(.recode_source == 7)] <- 0
+d[["contract"]][!is.na(.recode_source) & .recode_source >= 1 & .recode_source <= 6] <- 1
+
+d[["contract"]][.recode_source == 7] <- 0
 rm(.recode_source)
+
 variable_labels[["contract"]] <- "Employment has contract primary job 7 day recall"
 label_defs[["lblcontract"]] <- setNames(c(0, 1), c("Without contract", "With contract"))
 value_labels[["contract"]] <- label_defs[["lblcontract"]]
